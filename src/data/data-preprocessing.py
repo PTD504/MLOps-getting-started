@@ -97,8 +97,8 @@ def save_data(df, output_file):
 
 def main():
     # Define file paths
-    input_file = 'data/IMDB Dataset.csv'
-    output_file = 'data/IMDB Dataset_preprocessed.csv'
+    input_file = 'data/IMDB-Dataset.csv'
+    output_file = 'data/IMDB-Dataset_preprocessed.csv'
     
     # Load the dataset
     df = load_data(input_file)
