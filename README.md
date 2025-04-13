@@ -109,6 +109,8 @@ A demo video will illustrate how the system handles text input and produces sent
 
 2. **Set Up Virtual Environment and Install Dependencies:**
    ```bash
+   python -m venv venv
+   venv\Scripts\activate
    pip install -r requirements.txt
    ```
 
