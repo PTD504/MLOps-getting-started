@@ -97,12 +97,6 @@ uvicorn app:app --reload
 ```
 Access the web interface at http://localhost:8000
 
-### API Documentation
-
-FastAPI generates automatic documentation:
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
-
 ## Docker Deployment
 
 1. **Build the image**:
