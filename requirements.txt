@@ -1,9 +1,27 @@
+# Data processing
 pandas
 numpy
-nltk
 scikit-learn
-tensorflow
+
+# NLP
+nltk
 transformers
-optuna
+torch
+
+# Visualization
+matplotlib
+seaborn
+plotly
+
+# MLOps
 mlflow
-joblib
+optuna
+
+# Web app
+streamlit
+fastapi
+uvicorn
+
+# Utilities
+tqdm
+pytest

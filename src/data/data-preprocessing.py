@@ -1,113 +1,87 @@
 import pandas as pd
-import numpy as np
-import re  # Regular expressions for text cleaning
-import nltk  # Natural Language Toolkit
+import re
+from sklearn.model_selection import train_test_split
+import nltk
 from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer  # For stemming
-import joblib  # To save/load models and vectorizer (optional)
-import sys
+import mlflow
 
-# Download NLTK stopwords if not already downloaded
+# Download necessary NLTK data
 nltk.download('stopwords')
+nltk.download('punkt')
 
-# Global variables for stopwords and stemmer
-STOP_WORDS = set(stopwords.words('english'))  # Includes words like 'a', 'the', etc.
-STEMMER = PorterStemmer()
-
-def remove_html_tags(text):
-    """
-    Remove HTML tags from the given text using a regular expression.
-    """
-    pattern = re.compile(r'<.*?>')
-    return re.sub(pattern, '', text)
-
-def remove_non_alpha(text):
-    """
-    Remove punctuation and numbers, keeping only letters and spaces.
-    """
-    return re.sub(r'[^a-zA-Z\s]', '', text, flags=re.I)
-
-def tokenize_text(text):
-    """
-    Tokenize the text into a list of words.
-    """
-    return text.split()
-
-def remove_stopwords(words):
-    """
-    Remove stopwords from a list of words.
-    """
-    return [word for word in words if word not in STOP_WORDS]
-
-def apply_stemming(words):
-    """
-    Apply stemming to a list of words using PorterStemmer.
-    """
-    return [STEMMER.stem(word) for word in words]
-
-def preprocess_text(text):
-    """
-    Preprocess the given text by:
-      - Removing HTML tags
-      - Removing non-alphabet characters
-      - Converting to lowercase
-      - Tokenizing, removing stopwords and applying stemming
-    Returns the cleaned text as a single string.
-    """
-    # Remove HTML tags
-    text = remove_html_tags(text)
-    # Remove punctuation and numbers
-    text = remove_non_alpha(text)
-    # Convert text to lowercase
+def clean_text(text):
+    """Clean and preprocess text data"""
+    # Convert to lowercase
     text = text.lower()
-    # Tokenize the text into words
-    words = tokenize_text(text)
-    # Remove stopwords
-    words = remove_stopwords(words)
-    # Apply stemming
-    words = apply_stemming(words)
-    # Rejoin words into a cleaned string
-    return ' '.join(words)
-
-def load_data(file_path):
-    """
-    Load dataset from a CSV file given its file path.
-    """
-    try:
-        df = pd.read_csv(file_path)
-        print(f"Dataset loaded successfully from: {file_path}")
-        return df
-    except FileNotFoundError:
-        print(f"Error: File '{file_path}' not found. Please check the file path.")
-        sys.exit(1)
-
-def preprocess_dataset(df, review_column='review', output_column='cleaned_review'):
-    """
-    Apply preprocessing to a dataset. It creates a new column with cleaned reviews.
-    """
-    df[output_column] = df[review_column].apply(preprocess_text)
-    return df
-
-def save_data(df, output_file):
-    """
-    Save the preprocessed DataFrame to a CSV file.
-    """
-    df.to_csv(output_file, index=False)
-    print(f"Preprocessed data saved to: {output_file}")
-
-def main():
-    # Define file paths
-    input_file = 'data/IMDB-Dataset.csv'
-    output_file = 'data/IMDB-Dataset_preprocessed.csv'
+    # Remove HTML tags
+    text = re.sub(r'<.*?>', '', text)
+    # Remove special characters and digits
+    text = re.sub(r'[^a-zA-Z\s]', '', text)
+    # Remove extra whitespaces
+    text = re.sub(r'\s+', ' ', text).strip()
     
-    # Load the dataset
-    df = load_data(input_file)
+    # Remove stopwords (optional)
+    stop_words = set(stopwords.words('english'))
+    text = ' '.join([word for word in text.split() if word not in stop_words])
     
-    # Preprocess the review texts
-    df = preprocess_dataset(df)
-    
-    # Save the preprocessed dataset
-    save_data(df, output_file)
+    return text
 
-if __name__ == '__main__':
-    main()
+def preprocess_data():
+    """Preprocess IMDB dataset and save train/test splits"""
+    # Start MLflow run for tracking preprocessing
+    with mlflow.start_run(run_name="data_preprocessing"):
+        print("Loading dataset...")
+        # Load dataset
+        data = pd.read_csv("data/IMDB-Dataset.csv")
+        
+        # Log dataset details
+        mlflow.log_param("dataset_size", len(data))
+        mlflow.log_param("dataset_source", "IMDB-Dataset.csv")
+        
+        # Check class distribution
+        sentiment_counts = data['sentiment'].value_counts().to_dict()
+        mlflow.log_params({f"class_{k}": v for k, v in sentiment_counts.items()})
+        
+        # Clean text data
+        print("Cleaning text data...")
+        data['cleaned_review'] = data['review'].apply(clean_text)
+        
+        # Convert sentiment to binary labels
+        data['label'] = data['sentiment'].apply(lambda x: 1 if x == 'positive' else 0)
+        
+        # Split data into train, validation, and test sets
+        print("Splitting dataset...")
+        X_train_val, X_test, y_train_val, y_test = train_test_split(
+            data['cleaned_review'], data['label'], 
+            test_size=0.2, random_state=42, stratify=data['label']
+        )
+        
+        X_train, X_val, y_train, y_val = train_test_split(
+            X_train_val, y_train_val, 
+            test_size=0.25, random_state=42, stratify=y_train_val
+        )
+        
+        # Log split sizes
+        mlflow.log_param("train_size", len(X_train))
+        mlflow.log_param("val_size", len(X_val))
+        mlflow.log_param("test_size", len(X_test))
+        
+        # Save processed data
+        print("Saving processed data...")
+        train_data = pd.DataFrame({'text': X_train, 'label': y_train})
+        val_data = pd.DataFrame({'text': X_val, 'label': y_val})
+        test_data = pd.DataFrame({'text': X_test, 'label': y_test})
+        
+        train_data.to_csv("data/train.csv", index=False)
+        val_data.to_csv("data/val.csv", index=False)
+        test_data.to_csv("data/test.csv", index=False)
+        
+        # Log artifacts
+        mlflow.log_artifact("data/train.csv")
+        mlflow.log_artifact("data/val.csv")
+        mlflow.log_artifact("data/test.csv")
+        
+        print("Data preprocessing completed successfully!")
+
+if __name__ == "__main__":
+    preprocess_data()

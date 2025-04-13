@@ -1,115 +1,123 @@
 import pandas as pd
-import optuna
-import mlflow
-import mlflow.sklearn
-from sklearn.model_selection import train_test_split
+import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
+from sklearn.svm import LinearSVC
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support, confusion_matrix
+import mlflow
+import joblib
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# Load preprocessed data
-def load_data(file_path):
-    df = pd.read_csv(file_path)
-    return df
+def train_and_evaluate_models():
+    # Start MLflow run
+    with mlflow.start_run(run_name="traditional_models_training"):
+        # Load processed data
+        print("Loading processed data...")
+        train_data = pd.read_csv("data/train.csv")
+        val_data = pd.read_csv("data/val.csv")
+        test_data = pd.read_csv("data/test.csv")
+        
+        # Log dataset info
+        mlflow.log_param("train_samples", len(train_data))
+        mlflow.log_param("validation_samples", len(val_data))
+        mlflow.log_param("test_samples", len(test_data))
+        
+        # Define models to train
+        models = {
+            'logistic_regression': LogisticRegression(max_iter=1000, random_state=42),
+            'svm': LinearSVC(random_state=42),
+            'naive_bayes': MultinomialNB()
+        }
+        
+        # TF-IDF parameters
+        max_features = 10000
+        ngram_range = (1, 2)
+        
+        # Log TF-IDF parameters
+        mlflow.log_param("tfidf_max_features", max_features)
+        mlflow.log_param("tfidf_ngram_range", str(ngram_range))
+        
+        # Model training and evaluation
+        best_model = None
+        best_accuracy = 0
+        
+        for model_name, model in models.items():
+            print(f"Training {model_name}...")
+            
+            # Create a child run for each model
+            with mlflow.start_run(run_name=model_name, nested=True):
+                # Create pipeline with TF-IDF and model
+                pipeline = Pipeline([
+                    ('tfidf', TfidfVectorizer(max_features=max_features, ngram_range=ngram_range)),
+                    ('model', model)
+                ])
+                
+                # Train the model
+                pipeline.fit(train_data['text'], train_data['label'])
+                
+                # Evaluate on validation set
+                val_predictions = pipeline.predict(val_data['text'])
+                val_accuracy = accuracy_score(val_data['label'], val_predictions)
+                precision, recall, f1, _ = precision_recall_fscore_support(
+                    val_data['label'], val_predictions, average='binary'
+                )
+                
+                # Log metrics
+                mlflow.log_metric("validation_accuracy", val_accuracy)
+                mlflow.log_metric("validation_precision", precision)
+                mlflow.log_metric("validation_recall", recall)
+                mlflow.log_metric("validation_f1", f1)
+                
+                # Create and log confusion matrix
+                cm = confusion_matrix(val_data['label'], val_predictions)
+                plt.figure(figsize=(8, 6))
+                sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+                plt.xlabel('Predicted')
+                plt.ylabel('Actual')
+                plt.title(f'Confusion Matrix - {model_name}')
+                plt.savefig(f"{model_name}_confusion_matrix.png")
+                mlflow.log_artifact(f"{model_name}_confusion_matrix.png")
+                
+                # Save model
+                model_path = f"models/{model_name}.joblib"
+                joblib.dump(pipeline, model_path)
+                mlflow.log_artifact(model_path)
+                
+                # Track best model
+                if val_accuracy > best_accuracy:
+                    best_accuracy = val_accuracy
+                    best_model = model_name
+                
+                print(f"{model_name} trained. Validation accuracy: {val_accuracy:.4f}")
+                
+        # Log best model info
+        mlflow.log_param("best_traditional_model", best_model)
+        mlflow.log_metric("best_traditional_model_accuracy", best_accuracy)
+        
+        print(f"Best traditional model: {best_model} with accuracy: {best_accuracy:.4f}")
+        
+        # Evaluate best model on test set
+        best_pipeline = joblib.load(f"models/{best_model}.joblib")
+        test_predictions = best_pipeline.predict(test_data['text'])
+        test_accuracy = accuracy_score(test_data['label'], test_predictions)
+        precision, recall, f1, _ = precision_recall_fscore_support(
+            test_data['label'], test_predictions, average='binary'
+        )
+        
+        # Log test metrics
+        mlflow.log_metric("test_accuracy", test_accuracy)
+        mlflow.log_metric("test_precision", precision)
+        mlflow.log_metric("test_recall", recall)
+        mlflow.log_metric("test_f1", f1)
+        
+        print(f"Test accuracy of best model: {test_accuracy:.4f}")
 
-# Split the dataset into train and test
-def split_data(df, text_column='cleaned_review', label_column='sentiment'):
-    X = df[text_column]
-    y = df[label_column]
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    return X_train, X_test, y_train, y_test
-
-# Objective function for Optuna
-def objective(trial, X_train, y_train, X_test, y_test):
-    # Hyperparameter search space
-    model_type = trial.suggest_categorical('model_type', ['LogisticRegression', 'SVM', 'NaiveBayes'])
+if __name__ == "__main__":
+    # Create directories if they don't exist
+    import os
+    os.makedirs("models", exist_ok=True)
     
-    if model_type == 'LogisticRegression':
-        C = trial.suggest_loguniform('C', 1e-5, 1e5)
-        penalty = trial.suggest_categorical('penalty', ['l1', 'l2'])
-        model = LogisticRegression(C=C, penalty=penalty, max_iter=1000)
-    elif model_type == 'SVM':
-        C = trial.suggest_loguniform('C', 1e-5, 1e5)
-        kernel = trial.suggest_categorical('kernel', ['linear', 'rbf'])
-        model = SVC(C=C, kernel=kernel)
-    elif model_type == 'NaiveBayes':
-        alpha = trial.suggest_loguniform('alpha', 1e-5, 1e5)
-        model = MultinomialNB(alpha=alpha)
-    
-    # TF-IDF vectorization
-    vectorizer = TfidfVectorizer(max_features=5000)
-    X_train_tfidf = vectorizer.fit_transform(X_train)
-    X_test_tfidf = vectorizer.transform(X_test)
-    
-    # Train the model
-    model.fit(X_train_tfidf, y_train)
-    
-    # Evaluate the model
-    y_pred = model.predict(X_test_tfidf)
-    accuracy = accuracy_score(y_test, y_pred)
-    
-    # Log the metrics and parameters using MLflow
-    mlflow.log_params({
-        'model_type': model_type,
-        'C': C if model_type in ['LogisticRegression', 'SVM'] else None,
-        'penalty': penalty if model_type == 'LogisticRegression' else None,
-        'kernel': kernel if model_type == 'SVM' else None,
-        'alpha': alpha if model_type == 'NaiveBayes' else None
-    })
-    
-    mlflow.log_metric('accuracy', accuracy)
-    
-    return accuracy
-
-# Main function to run the Optuna optimization and MLflow tracking
-def main():
-    # Load data
-    input_file = 'data/IMDB-Dataset_preprocessed.csv'
-    df = load_data(input_file)
-    X_train, X_test, y_train, y_test = split_data(df)
-    
-    # Start MLflow tracking
-    mlflow.start_run()
-    
-    # Create an Optuna study and optimize
-    study = optuna.create_study(direction='maximize')
-    study.optimize(lambda trial: objective(trial, X_train, y_train, X_test, y_test), n_trials=100)
-    
-    # Log the best parameters and model
-    print("Best hyperparameters:", study.best_params)
-    
-    # Final training with best parameters
-    best_params = study.best_params
-    model_type = best_params['model_type']
-    
-    if model_type == 'LogisticRegression':
-        model = LogisticRegression(C=best_params['C'], penalty=best_params['penalty'], max_iter=1000)
-    elif model_type == 'SVM':
-        model = SVC(C=best_params['C'], kernel=best_params['kernel'])
-    elif model_type == 'NaiveBayes':
-        model = MultinomialNB(alpha=best_params['alpha'])
-    
-    # TF-IDF vectorization
-    vectorizer = TfidfVectorizer(max_features=5000)
-    X_train_tfidf = vectorizer.fit_transform(X_train)
-    X_test_tfidf = vectorizer.transform(X_test)
-    
-    # Final training with the best parameters
-    model.fit(X_train_tfidf, y_train)
-    
-    # Save the best model and vectorizer to MLflow
-    mlflow.sklearn.log_model(model, 'model')
-    mlflow.log_artifact('tfidf_vectorizer.pkl')  # Save vectorizer as artifact
-
-    # Evaluate final model
-    y_pred = model.predict(X_test_tfidf)
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f"Final Accuracy: {accuracy}")
-    
-    # End the MLflow run
-    mlflow.end_run()
-
-if __name__ == '__main__':
-    main()
+    train_and_evaluate_models()

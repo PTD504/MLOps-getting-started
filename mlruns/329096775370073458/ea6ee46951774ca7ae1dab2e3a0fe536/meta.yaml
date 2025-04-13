@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/github/MLOps-getting-started/mlruns/329096775370073458/ea6ee46951774ca7ae1dab2e3a0fe536/artifacts
+end_time: 1744540381415
+entry_point_name: ''
+experiment_id: '329096775370073458'
+lifecycle_stage: active
+run_id: ea6ee46951774ca7ae1dab2e3a0fe536
+run_name: deep_learning_models
+run_uuid: ea6ee46951774ca7ae1dab2e3a0fe536
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1744540381374
+status: 4
+tags: []
+user_id: ADMIN

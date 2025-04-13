@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/github/MLOps-getting-started/mlruns/329096775370073458/51c3371083534f19b868db327000af17/artifacts
+end_time: 1744540564749
+entry_point_name: ''
+experiment_id: '329096775370073458'
+lifecycle_stage: active
+run_id: 51c3371083534f19b868db327000af17
+run_name: naive_bayes
+run_uuid: 51c3371083534f19b868db327000af17
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1744540550380
+status: 3
+tags: []
+user_id: ADMIN

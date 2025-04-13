@@ -1,0 +1,121 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sentiment Analysis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .positive {
+            background-color: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+        }
+        .negative {
+            background-color: rgba(244, 67, 54, 0.2);
+            border: 1px solid #F44336;
+        }
+        .highlight {
+            background-color: yellow;
+            padding: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sentiment Analysis</h1>
+        <p>Enter a text review to analyze its sentiment:</p>
+        <textarea id="text-input" placeholder="Enter your text here..."></textarea>
+        <div>
+            <button onclick="predict('traditional')">Analyze with Traditional ML</button>
+            <button onclick="predict('deep')">Analyze with Deep Learning</button>
+        </div>
+        <div id="result" class="result">
+            <h3>Analysis Result</h3>
+            <p><strong>Sentiment:</strong> <span id="sentiment"></span></p>
+            <p><strong>Confidence:</strong> <span id="confidence"></span>%</p>
+            <p><strong>Text with highlights:</strong> <div id="highlighted-text"></div></p>
+        </div>
+    </div>
+
+    <script>
+        function predict(modelType) {
+            const text = document.getElementById('text-input').value;
+            if (!text) {
+                alert('Please enter some text');
+                return;
+            }
+            
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    text: text,
+                    model_type: modelType
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('sentiment').textContent = data.sentiment;
+                document.getElementById('confidence').textContent = data.probability;
+                
+                // Display highlighted text
+                const resultDiv = document.getElementById('result');
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result ' + (data.sentiment.toLowerCase() === 'positive' ? 'positive' : 'negative');
+                
+                // Highlight important words
+                let textWithHighlights = text;
+                data.highlighted_words.forEach(word => {
+                    const regex = new RegExp('\b' + word + '\b', 'gi');
+                    textWithHighlights = textWithHighlights.replace(regex, `<span class="highlight">${word}</span>`);
+                });
+                
+                document.getElementById('highlighted-text').innerHTML = textWithHighlights;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error analyzing text');
+            });
+        }
+    </script>
+</body>
+</html>
+            

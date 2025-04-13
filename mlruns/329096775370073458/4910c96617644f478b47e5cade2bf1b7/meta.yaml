@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/github/MLOps-getting-started/mlruns/329096775370073458/4910c96617644f478b47e5cade2bf1b7/artifacts
+end_time: 1744540550373
+entry_point_name: ''
+experiment_id: '329096775370073458'
+lifecycle_stage: active
+run_id: 4910c96617644f478b47e5cade2bf1b7
+run_name: svm
+run_uuid: 4910c96617644f478b47e5cade2bf1b7
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1744540535905
+status: 3
+tags: []
+user_id: ADMIN
