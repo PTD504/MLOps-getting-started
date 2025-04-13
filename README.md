@@ -106,7 +106,7 @@ A demo video will illustrate how the system handles text input and produces sent
 1. **Clone the Repository:**
    ```bash
    git clone https://github.com/PTD504/MLOps-getting-started.git
-   cd sentiment-analysis
+   cd MLOps-getting-started
    ```
 
 2. **Set Up Virtual Environment and Install Dependencies:**
@@ -118,13 +118,8 @@ A demo video will illustrate how the system handles text input and produces sent
    ```
 
 3. **Run the Training Pipeline:**
-   - For scikit-learn based models:
-     ```bash
-     python train.py
-     ```
-   - Or if using Transformers:
-     ```bash
-     python train_transformers.py
+   - ```
+     python pipeline.py
      ```
 
 4. **Start the API Backend (using FastAPI):**
@@ -140,17 +135,17 @@ A demo video will illustrate how the system handles text input and produces sent
 ### Deploying with Docker  
 1. **Build the Docker Image:**
    ```bash
-   docker build -t sentiment-analysis .
+   docker build -t MLOps-getting-started .
    ```
 
 2. **Run the Docker Container:**
    ```bash
-   docker run -p 8000:8000 sentiment-analysis
+   docker run -p 8000:8000 MLOps-getting-started
    ```
 
 ## Project Structure  
 ```
-sentiment-analysis/
+MLOps-getting-started/
 ├── data/                   # Raw and processed datasets
 ├── models/                 # Trained models storage
 ├── src/                    
