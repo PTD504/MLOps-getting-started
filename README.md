@@ -34,8 +34,6 @@ This project, **Sentiment Analysis**, aims to build a system that analyzes senti
 
 - **Deep Learning:**  
   - LSTM  
-  - BERT  
-  - DistilBERT
 
 The goal is to compare the effectiveness of traditional approaches versus transformer-based models and tune parameters such as embeddings, max features, and tokenizer settings.
 
@@ -77,12 +75,12 @@ The goal is to compare the effectiveness of traditional approaches versus transf
 
 | Component             | Tools/Frameworks                                                                 |
 | --------------------- | -------------------------------------------------------------------------------- |
-| Training Pipeline     | scikit-learn (TF-IDF + Logistic Regression) or Transformers (BERT, DistilBERT)      |
+| Training Pipeline     | scikit-learn (TF-IDF + Logistic Regression) and LSTM                             |
 | Experiment Tracking   | MLflow                                                                           |
 | Data Versioning       | DVC                                                                              |
 | CI/CD Pipeline        | GitHub Actions or Jenkins                                                        |
-| Model Deployment      | FastAPI + Docker                                                                 |
-| Frontend UI           | Streamlit / Gradio / React                                                         |
+| Model Deployment      | Local                                                                            |
+| Frontend UI           | Streamlit / Gradio / React                                                       |
 | Monitoring            | Prometheus + Grafana           |
 
 ## Demo  
