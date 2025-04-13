@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/github/MLOps-getting-started/mlruns/900973919251843881/53ce42aace5742d3aa40e2627f18b2eb/artifacts
+end_time: 1744560715510
+entry_point_name: ''
+experiment_id: '900973919251843881'
+lifecycle_stage: active
+run_id: 53ce42aace5742d3aa40e2627f18b2eb
+run_name: traditional_models_training
+run_uuid: 53ce42aace5742d3aa40e2627f18b2eb
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1744560672839
+status: 3
+tags: []
+user_id: ADMIN

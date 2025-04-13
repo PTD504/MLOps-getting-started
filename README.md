@@ -1,174 +1,136 @@
-# CS317.P21---Machine Learning Operations
-![UIT](https://img.shields.io/badge/from-UIT%20VNUHCM-blue?style=for-the-badge&link=https%3A%2F%2Fwww.uit.edu.vn%2F)
+## Overview
 
- <h2 align="center"> SENTIMENT ANALYSIS APPLICATION (Text-based data) </h2>
+This project implements a full MLOps workflow for sentiment analysis, comparing traditional machine learning approaches (Logistic Regression, SVM, Naive Bayes) with deep learning models (LSTM). It includes data preprocessing, model training, hyperparameter optimization, distributed execution, experiment tracking, and model serving via a web API.
 
-<p align="center">
-  <img src="https://en.uit.edu.vn/sites/vi/files/banner_en.png" alt="Alt text">
-</p>
+## Features
 
-## Contributors  
-- **Phan Thanh Đăng** – [22520193@gm.uit.edu.vn](mailto:22520193@gm.uit.edu.vn)  
-- **Nguyễn Thanh Hùng** – [22520518@gm.uit.edu.vn](mailto:22520518@gm.uit.edu.vn)  
-- **Võ Đình Trung** – [22521571@gm.uit.edu.vn](mailto:22521571@gm.uit.edu.vn)
+- **Data Preprocessing**: Text cleaning, lemmatization, and vectorization with TF-IDF
+- **Multiple Models**: 
+  - Traditional ML: Logistic Regression, SVM, Naive Bayes
+  - Deep Learning: Bidirectional LSTM with Embedding
+- **MLOps Components**:
+  - **Experiment Tracking**: MLflow for logging parameters, metrics, and artifacts
+  - **Hyperparameter Tuning**: Optuna for systematic optimization
+  - **Distributed Training**: Ray for parallel execution of pipeline components
+  - **Model Serving**: FastAPI for REST API endpoints with interactive documentation
+- **Web Application**: Interactive UI for testing sentiment analysis models
+- **Explainability**: Basic feature importance visualization
 
-## Supervisors  
-- **ThS. Đỗ Văn Tiến**  
-  Email: [tiendv@uit.edu.vn](mailto:tiendv@uit.edu.vn)
----
+## Dataset
 
-## Introduction  
-This project, **Sentiment Analysis**, aims to build a system that analyzes sentiment from textual data. The objective is to recognize emotions (positive, negative, and neutral) in various text inputs such as product reviews, social media comments, tweets, and customer emails. The system will compare the performance of traditional machine learning models (e.g., Logistic Regression, SVM, Naive Bayes in combination with TF-IDF) with modern deep learning approaches (e.g., LSTM, BERT, DistilBERT). Additionally, it integrates monitoring and performance tracking mechanisms to detect any model drift when deployed in a real-time application.
+The project uses the IMDB Movie Reviews dataset containing 50,000 movie reviews labeled as positive or negative sentiment.
 
-## Dataset  
-- **[IMDb Reviews](https://ai.stanford.edu/~amaas/data/sentiment/)**  
-  The IMDb reviews dataset is used as the primary data source, providing diverse sentiments and varying text lengths.
+## Project Structure
 
-## Models Implemented  
-
-- **Traditional Machine Learning:**  
-  - Logistic Regression  
-  - SVM  
-  - Naive Bayes  
-  - Text processing using TF-IDF
-
-- **Deep Learning:**  
-  - LSTM  
-  - BERT  
-  - DistilBERT
-
-The goal is to compare the effectiveness of traditional approaches versus transformer-based models and tune parameters such as embeddings, max features, and tokenizer settings.
-
-## Core Features
-
-### Essential Functionalities  
-- **User Text Input:**  
-  Accepts input text from users, such as product reviews, social media comments, tweets, and customer emails.
-
-- **Sentiment Prediction:**  
-  Classifies the input text into sentiment labels:
-  - Positive  
-  - Negative  
-  - Neutral
-
-- **Probability Display:**  
-  Along with the prediction, the system shows the probability for each label (e.g., Positive: 90%, Negative: 10%), giving users an insight into the confidence of the prediction.
-
-- **User Interface:**  
-  A simple web application UI can be developed using frameworks such as Streamlit, Gradio, or a combination of React for the frontend and an API backend.
-
-- **Model Monitoring:**  
-  Tracks metrics such as accuracy and input distribution, and raises alerts when model drift is detected during real-time deployment.
-
-### Advanced Features (Optional Enhancements)  
-- **Prediction Explainability:**  
-  Highlights the most influential words that affect the prediction using tools like LIME or SHAP.
-
-- **Multilingual Support:**  
-  Initially focused on English, with the possibility of expanding to other languages (e.g., Vietnamese) by employing multilingual BERT models.
-
-- **Analysis Log History:**  
-  Maintains a log of past sentiment analyses for user reference and trend analysis.
-
-- **Time-based Sentiment Dashboard:**  
-  Provides a dashboard to monitor sentiment trends over time (e.g., daily, weekly) when processing streaming data.
-
-## Proposed Tech Stack  
-
-| Component             | Tools/Frameworks                                                                 |
-| --------------------- | -------------------------------------------------------------------------------- |
-| Training Pipeline     | scikit-learn (TF-IDF + Logistic Regression) or Transformers (BERT, DistilBERT)      |
-| Experiment Tracking   | MLflow                                                                           |
-| Data Versioning       | DVC                                                                              |
-| CI/CD Pipeline        | GitHub Actions or Jenkins                                                        |
-| Model Deployment      | FastAPI + Docker                                                                 |
-| Frontend UI           | Streamlit / Gradio / React                                                         |
-| Monitoring            | Prometheus + Grafana           |
-
-## Demo  
-A demo video will illustrate how the system handles text input and produces sentiment predictions.  
-*(Insert demo video link here if available)*
-
-**Example Scenario:**
-- **Input Text:** "The product was delivered extremely fast, and the packaging was excellent. Very satisfied!"  
-- **Predicted Result:**  
-  - Sentiment: Positive  
-  - Confidence: 95%  
-  - Highlight: “extremely fast”, “very satisfied”
-
-## Installation & Setup
-
-### Requirements  
-- Python 3.8 or higher  
-- Docker 
-
-### Setup Steps  
-1. **Clone the Repository:**
-   ```bash
-   git clone https://github.com/PTD504/MLOps-getting-started.git
-   cd MLOps-getting-started
-   ```
-
-2. **Set Up Virtual Environment and Install Dependencies:**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # For Linux/MacOS
-   venv\Scripts\activate     # For Windows
-   pip install -r requirements.txt
-   ```
-
-3. **Run the Training Pipeline:**
-   - ```
-     python pipeline.py
-     ```
-
-4. **Start the API Backend (using FastAPI):**
-   ```bash
-   uvicorn app:app --reload
-   ```
-
-5. **Launch the UI (for example, using Streamlit):**
-   ```bash
-   streamlit run app.py
-   ```
-
-### Deploying with Docker  
-1. **Build the Docker Image:**
-   ```bash
-   docker build -t MLOps-getting-started .
-   ```
-
-2. **Run the Docker Container:**
-   ```bash
-   docker run -p 8000:8000 MLOps-getting-started
-   ```
-
-## Project Structure  
 ```
 MLOps-getting-started/
-├── data/                   # Raw and processed datasets
-├── models/                 # Trained models storage
-├── src/                    
-│   ├── data/               # Data processing and DVC tracking
-│   ├── models/             # ML and deep learning model implementations
-│   ├── app/                # API backend (FastAPI) and UI frontend code
-│   └── utils/              # Utility functions
-├── experiments/            # Experiment logs (managed by MLflow)
-├── Dockerfile              # Dockerfile for deployment
-├── requirements.txt        # Required Python libraries
-└── README.md
+├── app.py                  # FastAPI application
+├── pipeline.py             # Main orchestration pipeline using Ray
+├── requirements.txt        # Project dependencies
+├── Dockerfile              # Container definition
+├── README.md               # Project documentation
+├── data/                   # Dataset storage
+│   ├── IMDB-Dataset.csv    # Original dataset
+│   ├── train.csv           # Training split
+│   ├── val.csv             # Validation split
+│   └── test.csv            # Test split
+├── src/                    # Source code
+│   ├── data/
+│   │   └── preprocessing.py # Data preprocessing module
+│   └── models/
+│       ├── traditional_models.py # Traditional ML models
+│       └── deep_learning_models.py # LSTM and other DL models
+├── models/                 # Saved models and artifacts
+├── static/                 # Static files for web app
+├── templates/              # HTML templates
+└── mlruns/                 # MLflow experiment tracking data
 ```
-## Reference
+
+## Installation
+
+1. **Clone the repository**:
+```bash
+git clone https://github.com/yourusername/MLOps-getting-started.git
+cd MLOps-getting-started
 ```
-@InProceedings{maas-EtAl:2011:ACL-HLT2011,
-  author    = {Maas, Andrew L.  and  Daly, Raymond E.  and  Pham, Peter T.  and  Huang, Dan  and  Ng, Andrew Y.  and  Potts, Christopher},
-  title     = {Learning Word Vectors for Sentiment Analysis},
-  booktitle = {Proceedings of the 49th Annual Meeting of the Association for Computational Linguistics: Human Language Technologies},
-  month     = {June},
-  year      = {2011},
-  address   = {Portland, Oregon, USA},
-  publisher = {Association for Computational Linguistics},
-  pages     = {142--150},
-  url       = {http://www.aclweb.org/anthology/P11-1015}
-}
+
+2. **Set up a virtual environment**:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
+
+3. **Install dependencies**:
+```bash
+pip install -r requirements.txt
+```
+
+4. **Download the IMDB dataset**:
+   - Download from [Kaggle](https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews)
+   - Save as IMDB-Dataset.csv
+
+## Usage
+
+### Run the Full Pipeline
+
+```bash
+python pipeline.py
+```
+
+This will:
+1. Preprocess the dataset
+2. Train traditional ML models with Optuna hyperparameter tuning
+3. Train deep learning models
+4. Log all experiments to MLflow
+
+### View Experiment Tracking Results
+
+```bash
+mlflow ui
+```
+Access the MLflow dashboard at http://localhost:5000
+
+### Run the Web Application
+
+```bash
+uvicorn app:app --reload
+```
+Access the web interface at http://localhost:8000
+
+### API Documentation
+
+FastAPI generates automatic documentation:
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+## Docker Deployment
+
+1. **Build the image**:
+```bash
+docker build -t sentiment-analysis .
+```
+
+2. **Run the container**:
+```bash
+docker run -p 8000:8000 sentiment-analysis
+```
+
+
+## Key Advantages
+
+1. **Experiment Tracking**: All training runs are logged with MLflow, allowing easy comparison of model performance
+2. **Hyperparameter Optimization**: Optuna systematically explores the parameter space to find optimal configurations
+3. **Distributed Execution**: Ray enables parallel processing of pipeline components
+4. **Interactive UI**: Easy-to-use web interface for testing models
+5. **API Service**: FastAPI provides performant endpoints with auto-generated documentation
+
+## Future Work
+
+- Add transformer-based models (BERT, DistilBERT)
+- Implement continuous training with data versioning
+- Add more advanced explainability with LIME or SHAP
+- Implement model monitoring for drift detection
+
+## License
+
+MIT License

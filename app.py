@@ -1,120 +1,83 @@
 import os
 import pickle
 import numpy as np
-from flask import Flask, request, jsonify, render_template
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import tensorflow as tf
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing.sequence import pad_sequences
 import joblib
 import re
+from pathlib import Path
 
-app = Flask(__name__)
+# Model cho API request
+class TextInput(BaseModel):
+    text: str
+    model_type: str = "traditional"  # "traditional" hoặc "deep"
+
+# Khởi tạo FastAPI app
+app = FastAPI(
+    title="Sentiment Analysis API",
+    description="API phân tích cảm xúc văn bản sử dụng ML và Deep Learning",
+    version="1.0.0"
+)
+
+# Thêm CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Tạo thư mục templates và static nếu chưa có
+templates_dir = Path("templates")
+templates_dir.mkdir(exist_ok=True)
+
+static_dir = Path("static")
+static_dir.mkdir(exist_ok=True)
+
+# Tạo template cho trang web
+templates = Jinja2Templates(directory="templates")
+
+# Thiết lập các thư mục tĩnh
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Load models
 MODEL_DIR = 'models'
 MAX_LEN = 200
 
-# Load the best traditional model (assuming it's saved as best_traditional_model.joblib)
-traditional_model_path = os.path.join(MODEL_DIR, 'logistic_regression.joblib')
-traditional_model = joblib.load(traditional_model_path)
+# Load the traditional model
+try:
+    traditional_model_path = os.path.join(MODEL_DIR, 'logistic_regression.joblib')
+    traditional_model = joblib.load(traditional_model_path)
+    print(f"Đã tải mô hình truyền thống từ {traditional_model_path}")
+except Exception as e:
+    print(f"Không thể tải mô hình truyền thống: {e}")
+    traditional_model = None
 
 # Load LSTM model and tokenizer
-lstm_model_path = os.path.join(MODEL_DIR, 'lstm_model.h5')
-lstm_model = load_model(lstm_model_path)
+try:
+    lstm_model_path = os.path.join(MODEL_DIR, 'lstm_model.h5')
+    lstm_model = tf.keras.models.load_model(lstm_model_path)
+    
+    tokenizer_path = os.path.join(MODEL_DIR, 'tokenizer.pkl')
+    with open(tokenizer_path, 'rb') as f:
+        tokenizer = pickle.load(f)
+    print(f"Đã tải mô hình LSTM từ {lstm_model_path}")
+except Exception as e:
+    print(f"Không thể tải mô hình LSTM: {e}")
+    lstm_model = None
+    tokenizer = None
 
-tokenizer_path = os.path.join(MODEL_DIR, 'tokenizer.pkl')
-with open(tokenizer_path, 'rb') as f:
-    tokenizer = pickle.load(f)
-
-def clean_text(text):
-    """Basic text cleaning for traditional model"""
-    # Convert to lowercase
-    text = text.lower()
-    # Remove HTML tags
-    text = re.sub(r'<.*?>', '', text)
-    # Remove special characters and digits
-    text = re.sub(r'[^a-zA-Z\s]', '', text)
-    # Remove extra whitespaces
-    text = re.sub(r'\s+', ' ', text).strip()
-    return text
-
-def predict_traditional(text):
-    """Make prediction using traditional model"""
-    cleaned_text = clean_text(text)
-    prediction = traditional_model.predict([cleaned_text])[0]
-    probability = traditional_model.predict_proba([cleaned_text])[0]
-    
-    if prediction == 1:
-        sentiment = "Positive"
-        prob = probability[1]
-    else:
-        sentiment = "Negative"
-        prob = probability[0]
-    
-    return sentiment, prob
-
-def predict_lstm(text):
-    """Make prediction using LSTM model"""
-    # Tokenize and pad sequence
-    sequences = tokenizer.texts_to_sequences([text])
-    padded_seq = pad_sequences(sequences, maxlen=MAX_LEN)
-    
-    # Predict
-    prediction = lstm_model.predict(padded_seq)[0][0]
-    
-    if prediction > 0.5:
-        sentiment = "Positive"
-        prob = float(prediction)
-    else:
-        sentiment = "Negative"
-        prob = 1 - float(prediction)
-    
-    return sentiment, prob
-
-@app.route('/')
-def home():
-    """Render the home page"""
-    return render_template('index.html')
-
-@app.route('/predict', methods=['POST'])
-def predict():
-    """Get prediction from models"""
-    data = request.get_json()
-    text = data['text']
-    model_type = data.get('model_type', 'traditional')
-    
-    if model_type == 'traditional':
-        sentiment, probability = predict_traditional(text)
-    else:  # deep learning
-        sentiment, probability = predict_lstm(text)
-    
-    # Find important words (simplified approach)
-    words = text.lower().split()
-    important_words = []
-    
-    # Very simplistic approach - in production you'd use LIME or SHAP
-    positive_words = ['good', 'great', 'excellent', 'amazing', 'wonderful', 'best', 'love', 'like']
-    negative_words = ['bad', 'terrible', 'awful', 'worst', 'hate', 'disappointed', 'poor']
-    
-    if sentiment == "Positive":
-        important_words = [word for word in words if word in positive_words]
-    else:
-        important_words = [word for word in words if word in negative_words]
-    
-    return jsonify({
-        'sentiment': sentiment,
-        'probability': round(probability * 100, 2),
-        'highlighted_words': important_words
-    })
-
-if __name__ == '__main__':
-    # Create templates directory if it doesn't exist
-    os.makedirs('templates', exist_ok=True)
-    
-    # Create a basic HTML template if it doesn't exist
-    if not os.path.exists('templates/index.html'):
-        with open('templates/index.html', 'w') as f:
-            f.write('''
+# Create HTML template file if it doesn't exist
+index_html_path = templates_dir / "index.html"
+if not index_html_path.exists():
+    with open(index_html_path, "w", encoding="utf-8") as f:
+        f.write('''
 <!DOCTYPE html>
 <html>
 <head>
@@ -234,7 +197,110 @@ if __name__ == '__main__':
     </script>
 </body>
 </html>
-            ''')
+        ''')
+
+def clean_text(text):
+    """Basic text cleaning for traditional model"""
+    # Convert to lowercase
+    text = text.lower()
+    # Remove HTML tags
+    text = re.sub(r'<.*?>', '', text)
+    # Remove special characters and digits
+    text = re.sub(r'[^a-zA-Z\s]', '', text)
+    # Remove extra whitespaces
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+def predict_traditional(text):
+    """Make prediction using traditional model"""
+    if traditional_model is None:
+        return "Không có dữ liệu", 0.0
+        
+    cleaned_text = clean_text(text)
+    prediction = traditional_model.predict([cleaned_text])[0]
     
-    # Run the Flask app
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Check if model has predict_proba method
+    if hasattr(traditional_model, 'predict_proba'):
+        probability = traditional_model.predict_proba([cleaned_text])[0]
+        
+        if prediction == 1:
+            sentiment = "Positive"
+            prob = probability[1]
+        else:
+            sentiment = "Negative"
+            prob = probability[0]
+    else:
+        # For models without predict_proba (like LinearSVC)
+        sentiment = "Positive" if prediction == 1 else "Negative"
+        prob = 0.8  # Default confidence
+    
+    return sentiment, prob
+
+def predict_lstm(text):
+    """Make prediction using LSTM model"""
+    if lstm_model is None or tokenizer is None:
+        return "Không có dữ liệu", 0.0
+        
+    # Tokenize and pad sequence
+    sequences = tokenizer.texts_to_sequences([text])
+    padded_seq = tf.keras.preprocessing.sequence.pad_sequences(sequences, maxlen=MAX_LEN)
+    
+    # Predict
+    prediction = lstm_model.predict(padded_seq)[0][0]
+    
+    if prediction > 0.5:
+        sentiment = "Positive"
+        prob = float(prediction)
+    else:
+        sentiment = "Negative"
+        prob = 1 - float(prediction)
+    
+    return sentiment, prob
+
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    """Render the home page"""
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.post("/predict")
+async def predict(input_data: TextInput):
+    """Get prediction from models"""
+    text = input_data.text
+    model_type = input_data.model_type
+    
+    if model_type == 'traditional':
+        sentiment, probability = predict_traditional(text)
+    else:  # deep learning
+        sentiment, probability = predict_lstm(text)
+    
+    # Find important words (simplified approach)
+    words = text.lower().split()
+    important_words = []
+    
+    # Very simplistic approach - in production you'd use LIME or SHAP
+    positive_words = ['good', 'great', 'excellent', 'amazing', 'wonderful', 'best', 'love', 'like']
+    negative_words = ['bad', 'terrible', 'awful', 'worst', 'hate', 'disappointed', 'poor']
+    
+    if sentiment == "Positive":
+        important_words = [word for word in words if word in positive_words]
+    else:
+        important_words = [word for word in words if word in negative_words]
+    
+    return {
+        'sentiment': sentiment,
+        'probability': round(probability * 100, 2),
+        'highlighted_words': important_words
+    }
+
+# Thêm các metadata cho API docs
+@app.get("/info")
+async def get_info():
+    """Hiển thị thông tin về API"""
+    return {
+        "app_name": "Sentiment Analysis API",
+        "version": "1.0.0",
+        "models_available": {
+            "traditional": traditional_model is not None,
+            "lstm": lstm_model is not None
+        }
+    }

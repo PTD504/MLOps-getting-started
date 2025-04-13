@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/github/MLOps-getting-started/mlruns/900973919251843881/0a34f3e49add4fd884c3377571063496/artifacts
+end_time: 1744564347968
+entry_point_name: ''
+experiment_id: '900973919251843881'
+lifecycle_stage: active
+run_id: 0a34f3e49add4fd884c3377571063496
+run_name: data_preprocessing
+run_uuid: 0a34f3e49add4fd884c3377571063496
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1744564307101
+status: 3
+tags: []
+user_id: ADMIN
