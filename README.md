@@ -111,50 +111,41 @@ A demo video will illustrate how the system handles text input and produces sent
 
 2. **Set Up Virtual Environment and Install Dependencies:**
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # For Linux/MacOS
-   venv\Scripts\activate     # For Windows
    pip install -r requirements.txt
    ```
 
-3. **Run the Training Pipeline:**
+
+### Running Instructions 
+1. **Run the Training Pipeline:**
    - ```
      python pipeline.py
      ```
-
-4. **Start the API Backend (using FastAPI):**
+  - You can skip this step 1 with this local version 
+2. **Run the web app locally:**
    ```bash
-   uvicorn app:app --reload
+     python app.py
    ```
 
-5. **Launch the UI (for example, using Streamlit):**
+3. **Access the web interface:**
    ```bash
-   streamlit run app.py
+   Open your browser and go to http://localhost:5000
    ```
-
-### Deploying with Docker  
-1. **Build the Docker Image:**
+4. **View MLflow experiments:**
    ```bash
-   docker build -t MLOps-getting-started .
+   mlflow ui
    ```
-
-2. **Run the Docker Container:**
-   ```bash
-   docker run -p 8000:8000 MLOps-getting-started
-   ```
+ - Then open http://localhost:5000 in your browser to view the experiment tracking dashboard.
 
 ## Project Structure  
 ```
 MLOps-getting-started/
 ├── data/                   # Raw and processed datasets
 ├── models/                 # Trained models storage
+├── mlruns/                 # Mlflow information
 ├── src/                    
 │   ├── data/               # Data processing and DVC tracking
-│   ├── models/             # ML and deep learning model implementations
-│   ├── app/                # API backend (FastAPI) and UI frontend code
-│   └── utils/              # Utility functions
-├── experiments/            # Experiment logs (managed by MLflow)
-├── Dockerfile              # Dockerfile for deployment
+│   └models/                # ML and deep learning model implementations
+├── templates/              # Experiment logs (managed by MLflow)
 ├── requirements.txt        # Required Python libraries
 └── README.md
 ```
