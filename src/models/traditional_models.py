@@ -75,7 +75,7 @@ def main():
     with mlflow.start_run():
         # Create an Optuna study and optimize
         study = optuna.create_study(direction='maximize')
-        study.optimize(lambda trial: objective(trial, X_train, y_train, X_test, y_test), n_trials=100)
+        study.optimize(lambda trial: objective(trial, X_train, y_train, X_test, y_test), n_trials=5)
         
         # Log the best parameters and model
         print("Best hyperparameters:", study.best_params)
