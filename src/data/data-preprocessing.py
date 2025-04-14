@@ -1,113 +1,112 @@
-import pandas as pd
-import numpy as np
-import re  # Regular expressions for text cleaning
-import nltk  # Natural Language Toolkit
+import polars as pl
+import pandas as pd  # giữ để tương thích ngược
+import re
+import nltk
 from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer  # For stemming
-import joblib  # To save/load models and vectorizer (optional)
-import sys
+from nltk.stem import WordNetLemmatizer
+import mlflow
+import os
+from sklearn.model_selection import train_test_split
 
-# Download NLTK stopwords if not already downloaded
-nltk.download('stopwords')
+# Download necessary NLTK data
+nltk.download('stopwords', quiet=True)
+nltk.download('punkt', quiet=True)
+nltk.download('wordnet', quiet=True)
 
-# Global variables for stopwords and stemmer
-STOP_WORDS = set(stopwords.words('english'))  # Includes words like 'a', 'the', etc.
-STEMMER = PorterStemmer()
-
-def remove_html_tags(text):
-    """
-    Remove HTML tags from the given text using a regular expression.
-    """
-    pattern = re.compile(r'<.*?>')
-    return re.sub(pattern, '', text)
-
-def remove_non_alpha(text):
-    """
-    Remove punctuation and numbers, keeping only letters and spaces.
-    """
-    return re.sub(r'[^a-zA-Z\s]', '', text, flags=re.I)
-
-def tokenize_text(text):
-    """
-    Tokenize the text into a list of words.
-    """
-    return text.split()
-
-def remove_stopwords(words):
-    """
-    Remove stopwords from a list of words.
-    """
-    return [word for word in words if word not in STOP_WORDS]
-
-def apply_stemming(words):
-    """
-    Apply stemming to a list of words using PorterStemmer.
-    """
-    return [STEMMER.stem(word) for word in words]
-
-def preprocess_text(text):
-    """
-    Preprocess the given text by:
-      - Removing HTML tags
-      - Removing non-alphabet characters
-      - Converting to lowercase
-      - Tokenizing, removing stopwords and applying stemming
-    Returns the cleaned text as a single string.
-    """
-    # Remove HTML tags
-    text = remove_html_tags(text)
-    # Remove punctuation and numbers
-    text = remove_non_alpha(text)
-    # Convert text to lowercase
+def clean_text(text):
+    """Clean and preprocess text data"""
+    # Convert to lowercase
     text = text.lower()
-    # Tokenize the text into words
-    words = tokenize_text(text)
-    # Remove stopwords
-    words = remove_stopwords(words)
-    # Apply stemming
-    words = apply_stemming(words)
-    # Rejoin words into a cleaned string
+    # Remove HTML tags
+    text = re.sub(r'<.*?>', '', text)
+    # Remove URLs
+    text = re.sub(r'http\S+|www\S+|https\S+', '', text)
+    # Remove special characters and digits
+    text = re.sub(r'[^a-zA-Z\s]', '', text)
+    # Remove extra whitespaces
+    text = re.sub(r'\s+', ' ', text).strip()
+    
+    # Lemmatization
+    lemmatizer = WordNetLemmatizer()
+    stop_words = set(stopwords.words('english'))
+    words = text.split()
+    words = [lemmatizer.lemmatize(word) for word in words if word not in stop_words]
+    
     return ' '.join(words)
 
-def load_data(file_path):
-    """
-    Load dataset from a CSV file given its file path.
-    """
-    try:
-        df = pd.read_csv(file_path)
-        print(f"Dataset loaded successfully from: {file_path}")
-        return df
-    except FileNotFoundError:
-        print(f"Error: File '{file_path}' not found. Please check the file path.")
-        sys.exit(1)
+def preprocess_data():
+    """Preprocess IMDB dataset and save train/test splits"""
+    # Start MLflow run for tracking preprocessing
+    with mlflow.start_run(run_name="data_preprocessing"):
+        print("Bắt đầu tiền xử lý dữ liệu...")
+        
+        # Tạo thư mục data nếu chưa có
+        os.makedirs("data", exist_ok=True)
+        
+        # Load dataset
+        print("Đang tải dataset...")
+        # Sử dụng Polars thay vì Pandas
+        try:
+            data = pl.read_csv("data/IMDB-Dataset.csv")
+            # Log dataset details
+            mlflow.log_param("dataset_size", data.height)
+            mlflow.log_param("dataset_source", "IMDB-Dataset.csv")
+            mlflow.log_param("dataset_version", "1.0")
+            
+            # Check class distribution
+            sentiment_counts = data.group_by("sentiment").count()
+            sentiment_dict = {row['sentiment']: row['count'] for row in sentiment_counts.to_dicts()}
+            mlflow.log_params({f"class_{k}": v for k, v in sentiment_dict.items()})
+            
+            # Clean text data
+            print("Đang xử lý text...")
+            data = data.with_columns(
+                pl.col("review").apply(clean_text).alias("cleaned_review")
+            )
+            
+            # Convert sentiment to binary labels
+            data = data.with_columns(
+                pl.when(pl.col("sentiment") == "positive").then(1).otherwise(0).alias("label")
+            )
+            
+            # Convert back to Pandas for sklearn compatibility
+            pandas_data = data.to_pandas()
+            
+            # Split data into train, validation, and test sets
+            print("Chia dataset...")
+            X_train_val, X_test, y_train_val, y_test = train_test_split(
+                pandas_data['cleaned_review'], pandas_data['label'], 
+                test_size=0.2, random_state=42, stratify=pandas_data['label']
+            )
+            
+            X_train, X_val, y_train, y_val = train_test_split(
+                X_train_val, y_train_val, 
+                test_size=0.25, random_state=42, stratify=y_train_val
+            )
+            
+            # Log split sizes
+            mlflow.log_param("train_size", len(X_train))
+            mlflow.log_param("val_size", len(X_val))
+            mlflow.log_param("test_size", len(X_test))
+            
+            # Save processed data
+            print("Lưu dữ liệu đã xử lý...")
+            train_data = pd.DataFrame({'text': X_train, 'label': y_train})
+            val_data = pd.DataFrame({'text': X_val, 'label': y_val})
+            test_data = pd.DataFrame({'text': X_test, 'label': y_test})
+            
+            train_data.to_csv("data/train.csv", index=False)
+            val_data.to_csv("data/val.csv", index=False)
+            test_data.to_csv("data/test.csv", index=False)
+            
+            # Log artifacts
+            mlflow.log_artifact("data/train.csv")
+            mlflow.log_artifact("data/val.csv")
+            mlflow.log_artifact("data/test.csv")
+            
+            print("Tiền xử lý dữ liệu hoàn thành!")
+        except Exception as e:
+            print(f"Lỗi trong quá trình xử lý dữ liệu: {e}")
 
-def preprocess_dataset(df, review_column='review', output_column='cleaned_review'):
-    """
-    Apply preprocessing to a dataset. It creates a new column with cleaned reviews.
-    """
-    df[output_column] = df[review_column].apply(preprocess_text)
-    return df
-
-def save_data(df, output_file):
-    """
-    Save the preprocessed DataFrame to a CSV file.
-    """
-    df.to_csv(output_file, index=False)
-    print(f"Preprocessed data saved to: {output_file}")
-
-def main():
-    # Define file paths
-    input_file = 'data/IMDB-Dataset.csv'
-    output_file = 'data/IMDB-Dataset_preprocessed.csv'
-    
-    # Load the dataset
-    df = load_data(input_file)
-    
-    # Preprocess the review texts
-    df = preprocess_dataset(df)
-    
-    # Save the preprocessed dataset
-    save_data(df, output_file)
-
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    preprocess_data()
