@@ -1,4 +1,7 @@
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 import optuna
 import mlflow
 import mlflow.sklearn
@@ -28,7 +31,7 @@ def objective(trial, X_train, y_train, X_test, y_test):
     
     if model_type == 'LogisticRegression':
         C = trial.suggest_loguniform('C', 1e-5, 1e5)
-        penalty = trial.suggest_categorical('penalty', ['l1', 'l2'])
+        penalty = trial.suggest_categorical('penalty', ['l2'])
         model = LogisticRegression(C=C, penalty=penalty, max_iter=1000)
     elif model_type == 'SVM':
         C = trial.suggest_loguniform('C', 1e-5, 1e5)
@@ -66,7 +69,7 @@ def objective(trial, X_train, y_train, X_test, y_test):
 # Main function to run the Optuna optimization and MLflow tracking
 def main():
     # Load data
-    input_file = 'data/IMDB-Dataset_preprocessed.csv'
+    input_file = '/home/phucuy2025/School_Stuff/CS317_MLOps/MLOps-getting-started/data/IMDB-Dataset_preprocessed.csv'
     df = load_data(input_file)
     X_train, X_test, y_train, y_test = split_data(df)
     
@@ -112,4 +115,16 @@ def main():
     mlflow.end_run()
 
 if __name__ == '__main__':
-    main()
+    # main()
+    import pickle
+    tokenizer = pickle.load(open('/home/phucuy2025/School_Stuff/CS317_MLOps/MLOps-getting-started/src/data/tokenizer.pkl', 'rb'))
+    print(len(tokenizer.word_index))
+    X_train = np.load('/home/phucuy2025/School_Stuff/CS317_MLOps/MLOps-getting-started/data/X_train.npy', allow_pickle=True)
+    X_test = np.load('/home/phucuy2025/School_Stuff/CS317_MLOps/MLOps-getting-started/data/X_test.npy', allow_pickle=True)
+    y_train = np.load('/home/phucuy2025/School_Stuff/CS317_MLOps/MLOps-getting-started/data/y_train.npy', allow_pickle=True)
+    y_test = np.load('/home/phucuy2025/School_Stuff/CS317_MLOps/MLOps-getting-started/data/y_test.npy', allow_pickle=True)
+
+    print(f"X train shape = {X_train.shape}")
+    print(f"y train shape = {y_train.shape}")
+    print(f"X test shape = {X_test.shape}")
+    print(f"y test shape = {y_test.shape}")

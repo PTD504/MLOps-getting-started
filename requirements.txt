@@ -1,9 +1,0 @@
-pandas
-numpy
-nltk
-scikit-learn
-tensorflow
-transformers
-optuna
-mlflow
-joblib
