@@ -273,11 +273,9 @@ async def predict(input_data: TextInput):
     else:  # deep learning
         sentiment, probability = predict_lstm(text)
     
-    # Find important words (simplified approach)
     words = text.lower().split()
     important_words = []
     
-    # Very simplistic approach - in production you'd use LIME or SHAP
     positive_words = ['good', 'great', 'excellent', 'amazing', 'wonderful', 'best', 'love', 'like']
     negative_words = ['bad', 'terrible', 'awful', 'worst', 'hate', 'disappointed', 'poor']
     
