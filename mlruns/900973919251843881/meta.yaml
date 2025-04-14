@@ -1,6 +1,0 @@
-artifact_location: file:///D:/github/MLOps-getting-started/mlruns/900973919251843881
-creation_time: 1744558325665
-experiment_id: '900973919251843881'
-last_update_time: 1744558325665
-lifecycle_stage: active
-name: sentiment-analysis
