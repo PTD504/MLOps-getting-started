@@ -90,40 +90,9 @@ mlflow ui
 ```
 Access the MLflow dashboard at http://localhost:5000
 
-### Run the Web Application
-
-```bash
-uvicorn app:app --reload
-```
-Access the web interface at http://localhost:8000
-
-## Docker Deployment
-
-1. **Build the image**:
-```bash
-docker build -t sentiment-analysis .
-```
-
-2. **Run the container**:
-```bash
-docker run -p 8000:8000 sentiment-analysis
-```
-
-
-## Key Advantages
-
-1. **Experiment Tracking**: All training runs are logged with MLflow, allowing easy comparison of model performance
-2. **Hyperparameter Optimization**: Optuna systematically explores the parameter space to find optimal configurations
-3. **Distributed Execution**: Ray enables parallel processing of pipeline components
-4. **Interactive UI**: Easy-to-use web interface for testing models
-5. **API Service**: FastAPI provides performant endpoints with auto-generated documentation
-
-## Future Work
-
-- Add transformer-based models (BERT, DistilBERT)
-- Implement continuous training with data versioning
-- Add more advanced explainability with LIME or SHAP
-- Implement model monitoring for drift detection
+## Training Process Video
+- [requirement_install](https://drive.google.com/file/d/1PGr70ZtpwLYf5ythldn3ZWU7Hug9rOR4/view?usp=sharing)
+- [training_process](https://drive.google.com/file/d/1PGr70ZtpwLYf5ythldn3ZWU7Hug9rOR4/view?usp=sharing)
 
 ## License
 
