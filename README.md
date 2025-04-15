@@ -64,7 +64,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```bash
 pip install -r requirements.txt
 ```
-**Note: This project is not compatible with Python 3.12 or higher due to certain dependencies not supporting those versions.**
+*Note: This project is not compatible with Python 3.12 or higher due to certain dependencies not supporting those versions.*
 
 1. **Download the IMDB dataset**:
    - Download from [Kaggle](https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews)
