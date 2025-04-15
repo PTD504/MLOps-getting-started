@@ -4,7 +4,7 @@ numpy==1.26.4
 # Data processing
 pandas==2.1.4
 scikit-learn==1.6.1
-polars=1.27.1
+polars==1.27.1
 
 # NLP
 nltk==3.8.1
