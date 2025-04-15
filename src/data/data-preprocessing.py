@@ -60,7 +60,7 @@ def preprocess_data():
             # Clean text data
             print("Đang xử lý text...")
             data = data.with_columns(
-                pl.col("review").apply(clean_text).alias("cleaned_review")
+                pl.col("review").map_elements(clean_text).alias("cleaned_review")
             )
             
             # Convert sentiment to binary labels
