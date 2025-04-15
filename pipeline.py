@@ -2,9 +2,9 @@ import subprocess
 import os
 import mlflow
 from mlflow.tracking import MlflowClient
-import ray  # Thêm Ray cho distributed computing
+import ray  # Add Ray for distributed computing
 
-# Khởi tạo Ray
+# Initialize Ray
 ray.init(ignore_reinit_error=True)
 
 def setup_mlflow():
@@ -30,29 +30,19 @@ def setup_mlflow():
 
 @ray.remote
 def run_data_preprocessing(tracking_uri, experiment_id):
-    # Thiết lập biến môi trường
+    # Set up environment variables
     env_vars = dict(os.environ)
     env_vars["MLFLOW_TRACKING_URI"] = tracking_uri
     env_vars["MLFLOW_EXPERIMENT_ID"] = experiment_id
-    env_vars["PYTHONIOENCODING"] = "utf-8"  # Quan trọng: thiết lập encoding UTF-8
+    env_vars["PYTHONIOENCODING"] = "utf-8"  # Important: set encoding to UTF-8
     
     print("Running data preprocessing...")
-<<<<<<< HEAD
-    # Chạy script tiền xử lý dữ liệu
-    subprocess.run(["python", "src/data/data-preprocessing.py"])
-
-def run_training_and_fine_tuning():
-    print("Training models...")
-    # Chạy script huấn luyện mô hình học máy và học sâu
-    subprocess.run(["python", "src/models/traditional_models.py"])
-    subprocess.run(["python", "src/models/deep_learning_models.py"])
-=======
     try:
-        # Sử dụng env để truyền biến môi trường
+        # Use env to pass environment variables
         result = subprocess.run(
             ["python", "src/data/data-preprocessing.py"],
             env=env_vars,
-            check=True  # Hiển thị lỗi nếu có
+            check=True  # Display errors if any occur
         )
         return "Data preprocessing completed"
     except subprocess.CalledProcessError as e:
@@ -61,11 +51,11 @@ def run_training_and_fine_tuning():
 
 @ray.remote
 def run_traditional_models(tracking_uri, experiment_id):
-    # Thiết lập biến môi trường
+    # Set up environment variables
     env_vars = dict(os.environ)
     env_vars["MLFLOW_TRACKING_URI"] = tracking_uri
     env_vars["MLFLOW_EXPERIMENT_ID"] = experiment_id
-    env_vars["PYTHONIOENCODING"] = "utf-8"  # Quan trọng: thiết lập encoding UTF-8
+    env_vars["PYTHONIOENCODING"] = "utf-8"  # Important: set encoding to UTF-8
     
     print("Training traditional models...")
     try:
@@ -81,11 +71,11 @@ def run_traditional_models(tracking_uri, experiment_id):
 
 @ray.remote
 def run_deep_learning_models(tracking_uri, experiment_id):
-    # Thiết lập biến môi trường
+    # Set up environment variables
     env_vars = dict(os.environ)
     env_vars["MLFLOW_TRACKING_URI"] = tracking_uri
     env_vars["MLFLOW_EXPERIMENT_ID"] = experiment_id
-    env_vars["PYTHONIOENCODING"] = "utf-8"  # Quan trọng: thiết lập encoding UTF-8
+    env_vars["PYTHONIOENCODING"] = "utf-8"  # Important: set encoding to UTF-8
     
     print("Training deep learning models...")
     try:
@@ -98,32 +88,31 @@ def run_deep_learning_models(tracking_uri, experiment_id):
     except subprocess.CalledProcessError as e:
         print(f"Error running deep learning models: {e}")
         return "Deep learning model training failed"
->>>>>>> origin/trung_local_tuning_ray
 
 def main():
     # Setup MLflow tracking
     setup_mlflow()
     
-    # Lấy thông tin để truyền cho các task
+    # Retrieve information to pass to tasks
     tracking_uri = mlflow.get_tracking_uri()
     experiment_id = mlflow.get_experiment_by_name("sentiment-analysis").experiment_id
     
     print(f"MLflow tracking URI: {tracking_uri}")
     print(f"MLflow experiment ID: {experiment_id}")
     
-    # Chạy pipeline components
+    # Run pipeline components
     print("Starting ML pipeline...")
     
     try:
-        # Truyền thông tin MLflow vào các task
+        # Pass MLflow information to tasks
         preprocessing_result = ray.get(run_data_preprocessing.remote(tracking_uri, experiment_id))
         print(preprocessing_result)
         
-        # Tương tự cho các task khác
+        # Likewise for other tasks
         traditional_future = run_traditional_models.remote(tracking_uri, experiment_id)
         deep_learning_future = run_deep_learning_models.remote(tracking_uri, experiment_id)
         
-        # Đợi các tác vụ hoàn thành
+        # Wait for tasks to complete
         traditional_result, deep_learning_result = ray.get([traditional_future, deep_learning_future])
         
         print(traditional_result)
