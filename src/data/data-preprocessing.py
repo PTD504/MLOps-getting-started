@@ -60,7 +60,7 @@ def preprocess_data():
             # Clean text data
             print("Đang xử lý text...")
             data = data.with_columns(
-                pl.col("review").apply(clean_text).alias("cleaned_review")
+                pl.col("review").map_elements(clean_text).alias("cleaned_review")
             )
             
             # Convert sentiment to binary labels
@@ -70,6 +70,11 @@ def preprocess_data():
             
             # Convert back to Pandas for sklearn compatibility
             pandas_data = data.to_pandas()
+
+            preprocessed_file = "data/IMDb-Dataset-preprocessed.csv"
+            pandas_data.to_csv(preprocessed_file, index=False)
+            mlflow.log_artifact(preprocessed_file)
+            print(f"Dữ liệu đã được xử lý được lưu ở {preprocessed_file}")
             
             # Split data into train, validation, and test sets
             print("Chia dataset...")
