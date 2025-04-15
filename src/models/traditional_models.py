@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import optuna  # Thêm Optuna cho hyperparameter tuning
+import optuna  # Add Optuna for hyperparameter tuning
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
@@ -15,7 +15,7 @@ import os
 
 def objective(trial, X_train, y_train, X_val, y_val):
     """Hàm mục tiêu cho Optuna hyperparameter tuning"""
-    # Đề xuất hyperparameters
+    # Initialize hyperparameters
     classifier_name = trial.suggest_categorical("classifier", ["logistic_regression", "svm", "naive_bayes"])
     max_features = trial.suggest_int("max_features", 5000, 20000)
     ngram_range = trial.suggest_categorical("ngram_range", [(1, 1), (1, 2), (1, 3)])
