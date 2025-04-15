@@ -1,5 +1,6 @@
 import subprocess
 import os
+import sys
 import mlflow
 from mlflow.tracking import MlflowClient
 import ray  # Add Ray for distributed computing
@@ -40,7 +41,7 @@ def run_data_preprocessing(tracking_uri, experiment_id):
     try:
         # Use env to pass environment variables
         result = subprocess.run(
-            ["python", "src/data/data-preprocessing.py"],
+            [sys.executable, "src/data/data-preprocessing.py"],
             env=env_vars,
             check=True  # Display errors if any occur
         )
@@ -60,7 +61,7 @@ def run_traditional_models(tracking_uri, experiment_id):
     print("Training traditional models...")
     try:
         result = subprocess.run(
-            ["python", "src/models/traditional_models.py"],
+            [sys.executable, "src/models/traditional_models.py"],
             env=env_vars,
             check=True
         )
@@ -80,7 +81,7 @@ def run_deep_learning_models(tracking_uri, experiment_id):
     print("Training deep learning models...")
     try:
         result = subprocess.run(
-            ["python", "src/models/deep_learning_models.py"],
+            [sys.executable, "src/models/deep_learning_models.py"],
             env=env_vars,
             check=True
         )
