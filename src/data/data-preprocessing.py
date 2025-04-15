@@ -1,5 +1,5 @@
 import polars as pl
-import pandas as pd  # giữ để tương thích ngược
+import pandas as pd
 import re
 import nltk
 from nltk.corpus import stopwords
@@ -40,12 +40,11 @@ def preprocess_data():
     with mlflow.start_run(run_name="data_preprocessing"):
         print("Bắt đầu tiền xử lý dữ liệu...")
         
-        # Tạo thư mục data nếu chưa có
         os.makedirs("data", exist_ok=True)
         
         # Load dataset
         print("Đang tải dataset...")
-        # Sử dụng Polars thay vì Pandas
+        # Use Polars instead of Pandas for faster processing
         try:
             data = pl.read_csv("data/IMDB-Dataset.csv")
             # Log dataset details
