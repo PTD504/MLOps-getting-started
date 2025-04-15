@@ -64,8 +64,9 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```bash
 pip install -r requirements.txt
 ```
+**Note: This project is not compatible with Python 3.12 or higher due to certain dependencies not supporting those versions.**
 
-4. **Download the IMDB dataset**:
+1. **Download the IMDB dataset**:
    - Download from [Kaggle](https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews)
    - Save as IMDB-Dataset.csv
 
@@ -91,8 +92,7 @@ mlflow ui
 Access the MLflow dashboard at http://localhost:5000
 
 ## Training Process Video
-- [requirement_install](https://drive.google.com/file/d/1PGr70ZtpwLYf5ythldn3ZWU7Hug9rOR4/view?usp=sharing)
-- [training_process](https://drive.google.com/file/d/1PGr70ZtpwLYf5ythldn3ZWU7Hug9rOR4/view?usp=sharing)
+- [training_process](https://drive.google.com/file/d/1rPvdYF71s9emmPndpeG6CEJAPC7hnraU/view?usp=sharing)
 
 ## License
 
