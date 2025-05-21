@@ -93,6 +93,62 @@ Access the MLflow dashboard at http://localhost:5000
 
 ## Training Process Video
 - [training_process](https://drive.google.com/file/d/1rPvdYF71s9emmPndpeG6CEJAPC7hnraU/view?usp=sharing)
+## Deploy with Docker
+
+### Requirements
+- Docker: version 20.10.0 or later
+- Docker Compose: version 2.0.0 or later
+
+### Deploy with Docker Compose
+1. Make sure you have a trained model in the `models/` directory
+- Required models: `logistic_regression.joblib`, `lstm_model.h5`, `tokenizer.pkl`
+- If you don't have a model, run the pipeline to train it: `python pipeline.py`
+
+2. Build and start the container:
+
+```bash
+docker-compose up -d
+```
+
+3. Access the API:
+- Web interface: http://localhost:8000
+- API documentation: http://localhost:8000/docs
+
+4. Publish to Docker Hub (if desired):
+
+```bash
+# Grant execution permissions to the script
+chmod +x push-to-dockerhub.sh
+
+# Edit USERNAME in file
+nano push-to-dockerhub.sh
+
+# Run script
+./push-to-dockerhub.sh
+```
+
+5. Deploy on server:
+
+```bash
+# Copy docker-compose-hub.yml to server
+
+scp docker-compose-hub.yml user@server:/path/to/destination/
+
+# SSH into server
+
+ssh user@server
+
+# Deploy
+cd /path/to/destination/
+docker-compose -f docker-compose-hub.yml up -d
+
+```
+
+
+### Push the image to Docker Hub
+```bash
+# Log in to Docker Hub
+docker
 
 ## License
 
