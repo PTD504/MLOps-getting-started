@@ -100,6 +100,7 @@ Access the MLflow dashboard at http://localhost:5000
 - Docker Compose: version 2.0.0 or later
 
 ### Deploy with Docker Compose
+
 1. Make sure you have a trained model in the `models/` directory
 - Required models: `logistic_regression.joblib`, `lstm_model.h5`, `tokenizer.pkl`
 - If you don't have a model, run the pipeline to train it: `python pipeline.py`
@@ -115,16 +116,19 @@ docker-compose up -d
 - API documentation: http://localhost:8000/docs
 
 4. Publish to Docker Hub (if desired):
-
 ```bash
-# Grant execution permissions to the script
-chmod +x push-to-dockerhub.sh
+# Log in to Docker Hub
+docker login
 
-# Edit USERNAME in file
-nano push-to-dockerhub.sh
+# Tag the image
+docker tag sentiment-analysis-api:latest <your-username>/sentiment-analysis-api:latest #your-username: 22521571
 
-# Run script
-./push-to-dockerhub.sh
+# Push the image to Docker Hub
+docker push <your-username>/sentiment-analysis-api:latest #your-username: 22521571
+```
+Run the service from the image on Docker Hub:
+```bash
+docker-compose -f docker-compose-hub.yml up -d
 ```
 
 5. Deploy on server:
