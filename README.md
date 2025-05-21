@@ -144,18 +144,10 @@ docker login
 5. Deploy on server:
 
 ```bash
-# Copy docker-compose-hub.yml to server
-
-scp docker-compose-hub.yml user@server:/path/to/destination/
-
-# SSH into server
-
-ssh user@server
-
-# Deploy
-cd /path/to/destination/
-docker-compose -f docker-compose-hub.yml up -d
-
+# Give execute permission to the file
+chmod +x deploy.sh
+# Chạy script với các tham số
+./deploy.sh username server-ip server-path dockerhub-username
 ```
 
 6. Link video Demo:
