@@ -146,7 +146,7 @@ docker login
 ```bash
 # Give execute permission to the file
 chmod +x deploy.sh
-# Chạy script với các tham số
+# Run script with parameters
 ./deploy.sh username server-ip server-path dockerhub-username
 ```
 
