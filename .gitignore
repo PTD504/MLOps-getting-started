@@ -1,0 +1,21 @@
+# Ignore data files
+*.csv
+*.tsv
+*.txt
+*.data
+*.dat
+*.parquet
+*.feather
+*.xlsx
+*.xls
+
+# Ignore model files
+*.h5
+*.hdf5
+*.model
+*.pth
+*.pt
+*.pkl
+*.pickle
+*.onnx
+*.joblib
