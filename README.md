@@ -148,12 +148,6 @@ docker-compose -f docker-compose-hub.yml up -d
 
 ```
 
-
-### Push the image to Docker Hub
-```bash
-# Log in to Docker Hub
-docker
-
 ## License
 
 MIT License
