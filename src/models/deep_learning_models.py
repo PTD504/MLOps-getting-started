@@ -12,15 +12,26 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
+physical_devices = tf.config.list_physical_devices('GPU')
+if physical_devices:
+    print("GPU detected. Training will use GPU.")
+    try:
+        for device in physical_devices:
+            tf.config.experimental.set_memory_growth(device, True)
+    except RuntimeError as e:
+        print(f"Error configuring GPU memory growth: {e}")
+else:
+    print("No GPU detected. Training will use CPU.")
+
 def train_lstm_model():
     """Train mô hình LSTM cho phân loại văn bản"""
     with mlflow.start_run(run_name="deep_learning_models_training"):
         # Load processed data
         print("Đang tải dữ liệu đã xử lý...")
         try:
-            train_data = pd.read_csv("data/train.csv")
-            val_data = pd.read_csv("data/val.csv")
-            test_data = pd.read_csv("data/test.csv")
+            train_data = pd.read_csv("train.csv")
+            val_data = pd.read_csv("val.csv")
+            test_data = pd.read_csv("test.csv")
         except FileNotFoundError:
             print("Không tìm thấy dữ liệu. Vui lòng chạy tiền xử lý trước!")
             return
