@@ -29,6 +29,7 @@ MLOps-getting-started/
 ├── requirements.txt        # Project dependencies
 ├── Dockerfile              # Container definition
 ├── README.md               # Project documentation
+├── static/                 # Static files for web U (CSS, JS, images)
 ├── data/                   # Dataset storage
 │   ├── IMDB-Dataset.csv    # Original dataset
 │   ├── train.csv           # Training split
@@ -93,6 +94,75 @@ Access the MLflow dashboard at http://localhost:5000
 
 ## Training Process Video
 - [training_process](https://drive.google.com/file/d/1rPvdYF71s9emmPndpeG6CEJAPC7hnraU/view?usp=sharing)
+## Deploy with Docker
+
+### Requirements
+- Docker: version 20.10.0 or later
+- Docker Compose: version 2.0.0 or later
+
+### Deploy with Docker Compose
+
+1. Make sure you have a trained model in the `models/` directory
+- Required models: `logistic_regression.joblib`, `lstm_model.h5`, `tokenizer.pkl`
+- If you don't have a model, run the pipeline to train it: `python pipeline.py`
+- Required static files in the `static/` directory (included in the repository)
+- HTML templates in the `templates/` directory (included in the repository)
+
+2. Build and start the container:
+
+```bash
+docker-compose up -d
+```
+
+3. Access the API:
+- Web interface: http://localhost:8000
+- API documentation: http://localhost:8000/docs
+
+4. Publish to Docker Hub (if desired):
+```bash
+# Log in to Docker Hub
+docker login
+
+# Tag the image
+docker tag sentiment-analysis-api:latest <your-username>/sentiment-analysis-api:latest #your-username: 22521571
+
+# Push the image to Docker Hub
+docker push <your-username>/sentiment-analysis-api:latest #your-username: 22521571
+```
+Run the service from the image on Docker Hub:
+```bash
+docker-compose -f docker-compose-hub.yml up -d
+```
+or
+```bash
+# Make sure you are logged in to Docker Hub
+docker login
+
+# Run the script push-to-dockerhub.sh
+./push-to-dockerhub.sh your-username
+```
+5. Deploy on server:
+
+```bash
+# Give execute permission to the file
+chmod +x deploy.sh
+# Run script with parameters
+./deploy.sh username server-ip server-path dockerhub-username
+```
+
+6. Link video Demo:
+- Gồm các video thử nghiệm build và publish image lên dockerhub với localhost
+  + access_the_api_after_build
+  + BuildAndStartContainer  
+  + publish_to_docker_hub
+  + run_the_service_from_image_n_docker_hub
+    
+=> Link: https://drive.google.com/drive/folders/1QZql71yOEhx4iyF9JAs8mpA3C-xdXVwe?usp=sharing
+- file video demo quá trình build docker và deploy lên server:
+  + deploy_with_docker
+    
+=> Link: https://drive.google.com/file/d/1vAXwRElNjsoeqkng31pU12-9BI4JpP9t/view?usp=drive_link
+
 
 ## License
 
