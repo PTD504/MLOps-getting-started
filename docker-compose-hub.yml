@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  sentiment-api:
+    image: 22521571/sentiment-analysis-api:latest
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
