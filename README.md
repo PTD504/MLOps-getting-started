@@ -158,6 +158,20 @@ docker-compose -f docker-compose-hub.yml up -d
 
 ```
 
+6. Link video Demo:
+- Gồm các video thử nghiệm build và publish image lên dockerhub với localhost
+  + access_the_api_after_build
+  + BuildAndStartContainer  
+  + publish_to_docker_hub
+  + run_the_service_from_image_n_docker_hub
+    
+=> Link: https://drive.google.com/drive/folders/1QZql71yOEhx4iyF9JAs8mpA3C-xdXVwe?usp=sharing
+- file video demo quá trình build docker và deploy lên server:
+  + deploy_with_docker
+    
+=> Link: https://drive.google.com/file/d/1vAXwRElNjsoeqkng31pU12-9BI4JpP9t/view?usp=drive_link
+
+
 ## License
 
 MIT License
