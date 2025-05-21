@@ -1,0 +1,7 @@
+__pycache__/
+mlruns/
+.git/
+.gitignore
+*.ipynb
+.ipynb_checkpoints/
+venv/
