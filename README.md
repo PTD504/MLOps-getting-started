@@ -29,6 +29,7 @@ MLOps-getting-started/
 ├── requirements.txt        # Project dependencies
 ├── Dockerfile              # Container definition
 ├── README.md               # Project documentation
+├── static/                 # Static files for web U (CSS, JS, images)
 ├── data/                   # Dataset storage
 │   ├── IMDB-Dataset.csv    # Original dataset
 │   ├── train.csv           # Training split
@@ -104,6 +105,8 @@ Access the MLflow dashboard at http://localhost:5000
 1. Make sure you have a trained model in the `models/` directory
 - Required models: `logistic_regression.joblib`, `lstm_model.h5`, `tokenizer.pkl`
 - If you don't have a model, run the pipeline to train it: `python pipeline.py`
+- Required static files in the `static/` directory (included in the repository)
+- HTML templates in the `templates/` directory (included in the repository)
 
 2. Build and start the container:
 
