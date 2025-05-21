@@ -1,8 +1,11 @@
 services:
   sentiment-api:
-    image: sentiment-analysis-app
     build: .
+    image: sentiment-analysis-api:latest
     ports:
-      - "8000:8000"  # Đổi cổng từ 5000 thành 8000 cho FastAPI
+      - "8000:8000"
     environment:
       - PYTHONUNBUFFERED=1  # Đảm bảo logs được hiển thị đúng cách
+    volumes:
+      - ./models:/app/models
+    restart: unless-stopped
