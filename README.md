@@ -133,7 +133,14 @@ Run the service from the image on Docker Hub:
 ```bash
 docker-compose -f docker-compose-hub.yml up -d
 ```
+or
+```bash
+# Make sure you are logged in to Docker Hub
+docker login
 
+# Run the script push-to-dockerhub.sh
+./push-to-dockerhub.sh your-username
+```
 5. Deploy on server:
 
 ```bash
