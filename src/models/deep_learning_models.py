@@ -29,9 +29,9 @@ def train_lstm_model():
         # Load processed data
         print("Đang tải dữ liệu đã xử lý...")
         try:
-            train_data = pd.read_csv("train.csv")
-            val_data = pd.read_csv("val.csv")
-            test_data = pd.read_csv("test.csv")
+            train_data = pd.read_csv("data/train.csv")
+            val_data = pd.read_csv("data/val.csv")
+            test_data = pd.read_csv("data/test.csv")
         except FileNotFoundError:
             print("Không tìm thấy dữ liệu. Vui lòng chạy tiền xử lý trước!")
             return
