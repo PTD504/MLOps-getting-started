@@ -105,6 +105,7 @@ source venv/bin/activate
 3. **Install dependencies**:
 ```bash
 # For all labs (recommended)
+pip install -r requirements_lab1.txt
 pip install -r requirements.txt
 
 # Or install by specific lab
