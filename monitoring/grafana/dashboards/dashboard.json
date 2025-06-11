@@ -1,0 +1,37 @@
+{
+  "dashboard": {
+    "title": "Sentiment Analysis API Monitoring",
+    "panels": [
+      {
+        "title": "API Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "{{method}} {{handler}}"
+          }
+        ]
+      },
+      {
+        "title": "Model Prediction Latency",
+        "type": "graph", 
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, prediction_duration_seconds_bucket)",
+            "legendFormat": "95th percentile"
+          }
+        ]
+      },
+      {
+        "title": "Confidence Score Distribution",
+        "type": "histogram",
+        "targets": [
+          {
+            "expr": "prediction_confidence_score",
+            "legendFormat": "Confidence Score"
+          }
+        ]
+      }
+    ]
+  }
+}

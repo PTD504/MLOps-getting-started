@@ -83,3 +83,4 @@ volumes:
   prometheus_data:
   grafana_data:
   alertmanager_data:
+  fluentd_log:
