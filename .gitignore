@@ -1,14 +1,15 @@
 # Ignore data files
 *.csv
 *.tsv
-*.txt
 *.data
 *.dat
 *.parquet
 *.feather
 *.xlsx
 *.xls
-
+# Ignore log files
+venv/
+mlruns/
 # Ignore model files
 *.h5
 *.hdf5

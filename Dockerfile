@@ -24,6 +24,14 @@ COPY models/ ./models/
 
 # Tạo thư mục để lưu trữ mô hình nếu chưa có
 RUN mkdir -p models
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash app \
+    && chown -R app:app /app
+USER app
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
 
 # Mở cổng 8000 cho FastAPI
 EXPOSE 8000
