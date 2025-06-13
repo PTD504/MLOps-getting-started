@@ -2,19 +2,31 @@
 
 This project implements a full MLOps workflow for sentiment analysis, comparing traditional machine learning approaches (Logistic Regression, SVM, Naive Bayes) with deep learning models (LSTM). It includes data preprocessing, model training, hyperparameter optimization, distributed execution, experiment tracking, and model serving via a web API.
 
-## Features
+## Assignment Requirement of Lab3:
+Với API đã xây dựng ở Lab 2, hãy thêm Monitoring và Logging service, trong đó, yêu cầu tối thiểu như sau:
 
-- **Data Preprocessing**: Text cleaning, lemmatization, and vectorization with TF-IDF
-- **Multiple Models**: 
-  - Traditional ML: Logistic Regression, SVM, Naive Bayes
-  - Deep Learning: Bidirectional LSTM with Embedding
-- **MLOps Components**:
-  - **Experiment Tracking**: MLflow for logging parameters, metrics, and artifacts
-  - **Hyperparameter Tuning**: Optuna for systematic optimization
-  - **Distributed Training**: Ray for parallel execution of pipeline components
-  - **Model Serving**: FastAPI for REST API endpoints with interactive documentation
-- **Web Application**: Interactive UI for testing sentiment analysis models
-- **Explainability**: Basic feature importance visualization
+1. **Monitoring service phải monitor được các tài nguyên cơ bản của server:**
++ CPU usage
++ GPU usage (optional -> cộng điểm nếu có thể monitor)
++ RAM usage
++ Disk space, disk IO
++ Network IO (total transmitted, total receieved)
+
+2. **Monitoring API đã xây dựng ở Lab 2 bằng các thông số như:**
++ Request per second
++ Error rate
++ Latency
+
+3. **Monitoring model:**
++ Inference speed (CPU time và GPU time)
++ Confidence score
+
+4. **Logging service cẩn capture được log từ:**
++ syslog: đây là log của server, giúp xác định lỗi không phải từ ứng dụng (ví dụ temperature cao -> tự shutdown đột ngột -> không phải do API gây ra)
++ stdout: đây là log stream hiển thị trên console
++ stderror: đây là log stream sẽ in ra traceback khi có lỗi xảy ra
++ logfile: tùy thuộc vào đường dẫn file log của ứng dụng các bạn đã xây dựng ở Lab 2, capture log từ file này
+Khi có bất thường trong quá trình monitoring (ví dụ error rate cao > 50% hoặc confidence score < 0.6), sử dụng Alertmanager để thông báo hoặc thực hiện action được define trước. Lưu ý thế nào là bất thường do các bạn tự định nghĩa, action có thể là thông báo qua mail, telegram, slack hoặc trigger action train lại mô hình.
 
 ## Dataset
 
@@ -24,146 +36,60 @@ The project uses the IMDB Movie Reviews dataset containing 50,000 movie reviews 
 
 ```
 MLOps-getting-started/
-├── app.py                  # FastAPI application
-├── pipeline.py             # Main orchestration pipeline using Ray
-├── requirements.txt        # Project dependencies
-├── Dockerfile              # Container definition
-├── README.md               # Project documentation
-├── static/                 # Static files for web U (CSS, JS, images)
-├── data/                   # Dataset storage
-│   ├── IMDB-Dataset.csv    # Original dataset
-│   ├── train.csv           # Training split
-│   ├── val.csv             # Validation split
-│   └── test.csv            # Test split
-├── src/                    # Source code
-│   ├── data/
-│   │   └── preprocessing.py # Data preprocessing module
-│   └── models/
-│       ├── traditional_models.py # Traditional ML models
-│       └── deep_learning_models.py # LSTM and other DL models
-├── models/                 # Saved models and artifacts
-├── static/                 # Static files for web app
-├── templates/              # HTML templates
-└── mlruns/                 # MLflow experiment tracking data
+├── app.py
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+├── models/                # Put your lstm_model.h5 and tokenizer.pkl here
+│   ├── lstm_model.h5
+│   └── tokenizer.pkl
+├── templates/
+│   └── index.html         # (created by app.py or you can make one)
+├── static/                # (created by app.py or you can make one)
+├── prometheus/
+│   ├── prometheus.yml
+│   ├── alertmanager.yml
+│   └── alert.rules.yml
+├── grafana/
+│   └── provisioning/
+│       ├── datasources/
+│       │   └── datasources.yml
+│       └── dashboards/    # (Optional: for pre-configured dashboards)
+│           └── dashboard.yml
+├── loki/
+│   └── loki-config.yml
+└── promtail/
+    └── promtail-config.yml
 ```
 
 ## Installation
 
 1. **Clone the repository**:
+
 ```bash
 git clone https://github.com/yourusername/MLOps-getting-started.git
 cd MLOps-getting-started
 ```
 
-2. **Set up a virtual environment**:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. **Install dependencies**:
-```bash
-pip install -r requirements.txt
-```
-*Note: This project is not compatible with Python 3.12 or higher due to certain dependencies not supporting those versions.*
-
-1. **Download the IMDB dataset**:
-   - Download from [Kaggle](https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews)
-   - Save as IMDB-Dataset.csv
-
-## Usage
-
-### Run the Full Pipeline
+2. **Run the docker-compose file**:
 
 ```bash
-python pipeline.py
+docker-compose up --build -d
 ```
 
-This will:
-1. Preprocess the dataset
-2. Train traditional ML models with Optuna hyperparameter tuning
-3. Train deep learning models
-4. Log all experiments to MLflow
-
-### View Experiment Tracking Results
+If needed, you need to delete all the containers before if they are using the same ports as this one of ours:
 
 ```bash
-mlflow ui
+docker-compose down -v
 ```
-Access the MLflow dashboard at http://localhost:5000
 
-## Training Process Video
-- [training_process](https://drive.google.com/file/d/1rPvdYF71s9emmPndpeG6CEJAPC7hnraU/view?usp=sharing)
-## Deploy with Docker
-
-### Requirements
-- Docker: version 20.10.0 or later
-- Docker Compose: version 2.0.0 or later
-
-### Deploy with Docker Compose
-
-1. Make sure you have a trained model in the `models/` directory
-- Required models: `logistic_regression.joblib`, `lstm_model.h5`, `tokenizer.pkl`
-- If you don't have a model, run the pipeline to train it: `python pipeline.py`
-- Required static files in the `static/` directory (included in the repository)
-- HTML templates in the `templates/` directory (included in the repository)
-
-2. Build and start the container:
+3. **Check the list of running container**:
 
 ```bash
-docker-compose up -d
+docker ps
 ```
 
-3. Access the API:
-- Web interface: http://localhost:8000
-- API documentation: http://localhost:8000/docs
+_Note: This project is running with Python 3.9._
 
-4. Publish to Docker Hub (if desired):
-```bash
-# Log in to Docker Hub
-docker login
-
-# Tag the image
-docker tag sentiment-analysis-api:latest <your-username>/sentiment-analysis-api:latest #your-username: 22521571
-
-# Push the image to Docker Hub
-docker push <your-username>/sentiment-analysis-api:latest #your-username: 22521571
-```
-Run the service from the image on Docker Hub:
-```bash
-docker-compose -f docker-compose-hub.yml up -d
-```
-or
-```bash
-# Make sure you are logged in to Docker Hub
-docker login
-
-# Run the script push-to-dockerhub.sh
-./push-to-dockerhub.sh your-username
-```
-5. Deploy on server:
-
-```bash
-# Give execute permission to the file
-chmod +x deploy.sh
-# Run script with parameters
-./deploy.sh username server-ip server-path dockerhub-username
-```
-
-6. Link video Demo:
-- Gồm các video thử nghiệm build và publish image lên dockerhub với localhost
-  + access_the_api_after_build
-  + BuildAndStartContainer  
-  + publish_to_docker_hub
-  + run_the_service_from_image_n_docker_hub
-    
-=> Link: https://drive.google.com/drive/folders/1QZql71yOEhx4iyF9JAs8mpA3C-xdXVwe?usp=sharing
-- file video demo quá trình build docker và deploy lên server:
-  + deploy_with_docker
-    
-=> Link: https://drive.google.com/file/d/1vAXwRElNjsoeqkng31pU12-9BI4JpP9t/view?usp=drive_link
-
-
-## License
-
-MIT License
+# Video demo
+Link: [click here](https://drive.google.com/file/d/1kz0grRHgfGDE0eng2kFirgOmrQ4-Fk5S/view?usp=sharing)
