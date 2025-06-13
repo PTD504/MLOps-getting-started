@@ -91,5 +91,28 @@ docker ps
 
 _Note: This project is running with Python 3.9._
 
-# Video demo
+## Video demo
 Link: [click here](https://drive.google.com/file/d/1kz0grRHgfGDE0eng2kFirgOmrQ4-Fk5S/view?usp=sharing)
+
+## Service Ports
+
+This project utilizes several services, each accessible on a specific port on your `localhost` after running `docker-compose up -d`.
+
+| Service                      | Host Port | Access URL                        | Notes                                               |
+| :--------------------------- | :-------- | :-------------------------------- | :-------------------------------------------------- |
+| FastAPI Application          | `8000`    | `http://localhost:8000`           | API and `/metrics` endpoint                         |
+| Prometheus                   | `9090`    | `http://localhost:9090`           | Metrics, Targets, Alerts UI, Graph/Query            |
+| Grafana                      | `3000`    | `http://localhost:3000`           | Dashboards (Default Login: `admin` / `admin`)       |
+| Alertmanager                 | `9093`    | `http://localhost:9093`           | View active/silenced alerts                         |
+| Loki                         | `3100`    | (Accessed via Grafana data source)  | Log storage; queried by Grafana                   |
+| Node Exporter                | `9100`    | `http://localhost:9100/metrics`   | Server metrics; primarily scraped by Prometheus     |
+| Promtail HTTP (Internal)     | `9080`    | (Not for direct user interaction) | Promtail's internal HTTP server for its operations  |
+
+## Requirements:
+
+All packages and libraries needed for this code is stored in the requirements.txt file. They are declared with their specific version to avoid the conflict
+
+**Note:**
+*   The "Access URL" for Loki is indirect; you query Loki logs through Grafana's "Explore" view by selecting the Loki data source.
+*   The Node Exporter metrics endpoint is typically consumed by Prometheus, not directly accessed by users routinely.
+*   Promtail's HTTP port is for its own operational purposes and not for end-user log viewing.
