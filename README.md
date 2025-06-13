@@ -108,11 +108,13 @@ This project utilizes several services, each accessible on a specific port on yo
 | Node Exporter                | `9100`    | `http://localhost:9100/metrics`   | Server metrics; primarily scraped by Prometheus     |
 | Promtail HTTP (Internal)     | `9080`    | (Not for direct user interaction) | Promtail's internal HTTP server for its operations  |
 
-## Requirements:
-
-All packages and libraries needed for this code is stored in the requirements.txt file. They are declared with their specific version to avoid the conflict
 
 **Note:**
 *   The "Access URL" for Loki is indirect; you query Loki logs through Grafana's "Explore" view by selecting the Loki data source.
 *   The Node Exporter metrics endpoint is typically consumed by Prometheus, not directly accessed by users routinely.
 *   Promtail's HTTP port is for its own operational purposes and not for end-user log viewing.
+
+
+## Requirements:
+
+All packages and libraries needed for this code is stored in the requirements.txt file. They are declared with their specific version to avoid the conflict
