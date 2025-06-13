@@ -2,19 +2,31 @@
 
 This project implements a full MLOps workflow for sentiment analysis, comparing traditional machine learning approaches (Logistic Regression, SVM, Naive Bayes) with deep learning models (LSTM). It includes data preprocessing, model training, hyperparameter optimization, distributed execution, experiment tracking, and model serving via a web API.
 
-## Features
+## Assignment Requirement of Lab3:
+Với API đã xây dựng ở Lab 2, hãy thêm Monitoring và Logging service, trong đó, yêu cầu tối thiểu như sau:
 
-- **Data Preprocessing**: Text cleaning, lemmatization, and vectorization with TF-IDF
-- **Multiple Models**:
-  - Traditional ML: Logistic Regression, SVM, Naive Bayes
-  - Deep Learning: Bidirectional LSTM with Embedding
-- **MLOps Components**:
-  - **Experiment Tracking**: MLflow for logging parameters, metrics, and artifacts
-  - **Hyperparameter Tuning**: Optuna for systematic optimization
-  - **Distributed Training**: Ray for parallel execution of pipeline components
-  - **Model Serving**: FastAPI for REST API endpoints with interactive documentation
-- **Web Application**: Interactive UI for testing sentiment analysis models
-- **Explainability**: Basic feature importance visualization
+1. **Monitoring service phải monitor được các tài nguyên cơ bản của server:**
++ CPU usage
++ GPU usage (optional -> cộng điểm nếu có thể monitor)
++ RAM usage
++ Disk space, disk IO
++ Network IO (total transmitted, total receieved)
+
+2. **Monitoring API đã xây dựng ở Lab 2 bằng các thông số như:**
++ Request per second
++ Error rate
++ Latency
+
+3. **Monitoring model:**
++ Inference speed (CPU time và GPU time)
++ Confidence score
+
+4. **Logging service cẩn capture được log từ:**
++ syslog: đây là log của server, giúp xác định lỗi không phải từ ứng dụng (ví dụ temperature cao -> tự shutdown đột ngột -> không phải do API gây ra)
++ stdout: đây là log stream hiển thị trên console
++ stderror: đây là log stream sẽ in ra traceback khi có lỗi xảy ra
++ logfile: tùy thuộc vào đường dẫn file log của ứng dụng các bạn đã xây dựng ở Lab 2, capture log từ file này
+Khi có bất thường trong quá trình monitoring (ví dụ error rate cao > 50% hoặc confidence score < 0.6), sử dụng Alertmanager để thông báo hoặc thực hiện action được define trước. Lưu ý thế nào là bất thường do các bạn tự định nghĩa, action có thể là thông báo qua mail, telegram, slack hoặc trigger action train lại mô hình.
 
 ## Dataset
 
@@ -62,7 +74,7 @@ cd MLOps-getting-started
 2. **Run the docker-compose file**:
 
 ```bash
-docker-ccompose up --build -d
+docker-compose up --build -d
 ```
 
 If needed, you need to delete all the containers before if they are using the same ports as this one of ours:
@@ -80,3 +92,4 @@ docker ps
 _Note: This project is running with Python 3.9._
 
 # Video demo
+Link: [click here](https://drive.google.com/file/d/1kz0grRHgfGDE0eng2kFirgOmrQ4-Fk5S/view?usp=sharing)
