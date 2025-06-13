@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'alertmanager:9093'
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  - "/etc/prometheus/rules/alert.rules.yml" # Path inside the container
+
+scrape_configs:
+  - job_name: 'prometheus' # Scrape Prometheus itself
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'sentiment_app' # Your FastAPI app
+    static_configs:
+      - targets: ['sentiment_app:8000'] # 'app' is the service name in docker-compose
+
+  - job_name: 'node_exporter' # System metrics
+    static_configs:
+      - targets: ['node-exporter:9100']

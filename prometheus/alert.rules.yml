@@ -1,0 +1,63 @@
+groups:
+  - name: fastapi_app_rules
+    rules:
+      - alert: HighErrorRate
+        expr: (sum(rate(http_requests_total{job="sentiment_app", status=~"5.."}[2m])) / sum(rate(http_requests_total{job="sentiment_app"}[2m]))) * 100 > 50 # Example: 10% error rate
+        for: 1m # Duration for which condition must be true
+        labels:
+          severity: critical
+        annotations:
+          summary: "High API Error Rate on {{ $labels.job }}"
+          description: "{{ $labels.job }} is experiencing an error rate of {{ $value | printf \"%.2f\" }}% for the last 5 minutes."
+
+      - alert: LowConfidenceScore
+        # This assumes your model_confidence_score is for the LATEST prediction.
+        # For an average, you'd need to calculate it or use a different metric type (e.g. summary)
+        # For simplicity with Gauge, we check if the latest score is low.
+        # Better: avg_over_time(model_confidence_score[5m]) < 0.6
+        expr: model_confidence_score{job="sentiment_app"} < 0.60
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low Model Confidence Score on {{ $labels.job }}"
+          description: "Model {{ $labels.model_name }} on {{ $labels.job }} reported a confidence score of {{ $value | printf \"%.2f\" }} for {{ $labels.sentiment_label }} sentiment, which is below threshold."
+          
+      - alert: HighRequestLatency
+        # Using the histogram quantile from prometheus-fastapi-instrumentator
+        expr: histogram_quantile(0.95, sum(rate(fastapi_request_duration_seconds_bucket{job="sentiment_app"}[5m])) by (le, job, path)) > 1 # 95th percentile latency > 1 second
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API Request Latency on {{ $labels.job }} for path {{ $labels.path }}"
+          description: "The 95th percentile request latency for {{ $labels.path }} on {{ $labels.job }} is {{ $value | printf \"%.2f\" }}s, exceeding 1s."
+
+  - name: host_rules
+    rules:
+      - alert: HostHighCpuLoad
+        expr: node_load1{job="node_exporter"} / count without(cpu)(node_cpu_seconds_total{job="node_exporter",mode="system"}) * 100 > 70
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Host high CPU load on {{ $labels.instance }}"
+          description: "Instance {{ $labels.instance }} CPU load is {{ $value | printf \"%.2f\" }}%."
+
+      - alert: HostHighMemoryUsage
+        expr: (node_memory_MemTotal_bytes{job="node_exporter"} - node_memory_MemAvailable_bytes{job="node_exporter"}) / node_memory_MemTotal_bytes{job="node_exporter"} * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Host high memory usage on {{ $labels.instance }}"
+          description: "Instance {{ $labels.instance }} memory usage is {{ $value | printf \"%.2f\" }}%."
+
+      - alert: HostLowDiskSpace
+        expr: (node_filesystem_avail_bytes{job="node_exporter",mountpoint="/rootfs"} / node_filesystem_size_bytes{job="node_exporter",mountpoint="/rootfs"}) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Host low disk space on {{ $labels.instance }}"
+          description: "Instance {{ $labels.instance }} has less than 10% disk space available on /."

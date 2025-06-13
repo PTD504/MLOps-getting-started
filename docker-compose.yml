@@ -1,11 +1,166 @@
+# docker-compose.yml (MERGED VERSION)
+version: "3.8"
+
+volumes:
+  prometheus_data: {}
+  grafana_data: {}
+  loki_data: {}
+
+networks:
+  monitor-net: # Define the network
+
+configs: # For Prometheus, Alertmanager, Promtail configs if using Docker Swarm mode (optional for compose)
+  prometheus_config:
+    file: ./prometheus/prometheus.yml
+  alertmanager_config:
+    file: ./prometheus/alertmanager.yml
+  alert_rules:
+    file: ./prometheus/alert.rules.yml
+  # promtail_config: # Promtail config usually mounted directly as a file
+  #   file: ./promtail/promtail-config.yml
+
 services:
-  sentiment-api:
-    build: .
-    image: sentiment-analysis-api:latest
+  # Your FastAPI Application (Adapted from your old docker-compose.yml)
+  sentiment_app: # Changed name from 'app' to 'sentiment_app' for clarity, or keep 'app'
+    build: . # Uses the Dockerfile in the current directory (your existing one)
+    image: sentiment-analysis-api:custom # You can name the image if you like
+    container_name: sentiment_app_container # Explicit container name
+    restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
-      - PYTHONUNBUFFERED=1  # Đảm bảo logs được hiển thị đúng cách
+      - PYTHONUNBUFFERED=1 # Good for logs
+      # Add any other environment variables your app needs
     volumes:
-      - ./models:/app/models
+      - ./models:/app/models # Mounts local models, overrides image content at runtime
+      # For development, you might want to mount your app code for live changes:
+      # - ./app.py:/app/app.py
+      # - ./src:/app/src # If you have a src directory
+      # - ./templates:/app/templates
+      # - ./static:/app/static
+    networks: # Connect to the custom network
+      - monitor-net
+    logging: # Crucial for Promtail to pick up logs from Docker
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Prometheus - Metrics Collection
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: prometheus
     restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus_data:/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/alert.rules.yml:/etc/prometheus/rules/alert.rules.yml # Ensure this path matches rule_files in prometheus.yml
+    # configs: # Using direct volume mounts for prometheus.yml and alert.rules.yml is often simpler for compose
+    #   - source: prometheus_config
+    #     target: /etc/prometheus/prometheus.yml
+    #   - source: alert_rules
+    #     target: /etc/prometheus/rules/alert.rules.yml
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+      - "--web.enable-lifecycle"
+      - "--log.level=debug"
+    networks:
+      - monitor-net
+    depends_on: # Prometheus should try to scrape sentiment_app
+      - sentiment_app
+      - node-exporter
+
+  # Node Exporter - System Metrics
+  node-exporter:
+    image: prom/node-exporter:v1.6.1
+    container_name: node_exporter
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/rootfs"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+    ports:
+      - "9100:9100"
+    networks:
+      - monitor-net
+
+  # Grafana - Visualization
+  grafana:
+    image: grafana/grafana:10.1.1
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - monitor-net
+    depends_on:
+      - prometheus
+      - loki
+
+  # Alertmanager - Alert Handling
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: alertmanager
+    restart: unless-stopped
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml # Mount config directly
+    # configs: # Using direct volume mount is simpler
+    #   - source: alertmanager_config
+    #     target: /etc/alertmanager/config.yml
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml" # Path changed to match direct mount
+      - "--storage.path=/alertmanager"
+    networks:
+      - monitor-net
+    depends_on:
+      - prometheus
+
+  # Loki - Log Aggregation
+  loki:
+    image: grafana/loki:2.9.1
+    container_name: loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki_data:/loki
+      - ./loki/loki-config.yml:/etc/loki/local-config.yaml # Mount config directly
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - monitor-net
+
+  # Promtail - Log Shipper
+  promtail:
+    image: grafana/promtail:2.9.1
+    container_name: promtail
+    restart: unless-stopped
+    volumes:
+      - /var/log:/var/log:ro # Mounts host /var/log to /var/log inside Promtail (read-only)
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro # For container logs
+      - /var/run/docker.sock:/var/run/docker.sock:ro # Added Docker socket for service discovery
+      - ./promtail/promtail-config.yml:/etc/promtail/config.yml # Mount config directly
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - monitor-net
+    depends_on:
+      - loki
+      - sentiment_app # Promtail might depend on the app to exist to get its logs
