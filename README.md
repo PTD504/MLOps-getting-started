@@ -84,7 +84,7 @@ MLOps-getting-started/
 
 1. **Clone the repository**:
 ```bash
-git clone https://github.com/yourusername/MLOps-getting-started.git
+git clone https://github.com/PTD504/MLOps-getting-started.git
 cd MLOps-getting-started
 ```
 
